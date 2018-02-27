@@ -1,6 +1,10 @@
 # Backup and restore the entire ICP environment
 
-In this scenario, we will describe how to back up and restore the whole ICP environment. This procedure is useful to cover the case of a disaster: loss of the data center where ICP is installed.
+As described in the introduction, we don't recommend using a traditional server backup to persist an ICP environment (because of etcd).
+
+However, a full environment backup might be required to quickly restore the environment to its initial state, then apply specific component restore, as documented at [Backup and restore ICP components](components.md)
+
+We are using here that an ICP environment has already been deployed.
 
 ## Deploy a sample application
 
