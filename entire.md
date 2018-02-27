@@ -6,11 +6,19 @@ However, a full environment backup might be required to quickly restore the envi
 
 We are using here that an ICP environment has already been deployed.
 
-## Deploy a sample application
+## Take a backup of your environment
 
-## Back up the Virtual Machine
+We recommend taking the back up right after installing ICP. 
 
-Using Veaam
+The tool to use for the backup depends on the environment ICP has been deployed:
+
+* For a VMware environment, you can use VMware snapshot, Veaam, or IBM Spectrum Protect
+
+* For a public cloud environment, use the proper backup solution
+
+* For any environment, you can always use the storage-provided mechanism for backup
+
+## Generate information on etcd
 
 ## Destroy the Virtual Machines
 
