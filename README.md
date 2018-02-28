@@ -21,7 +21,7 @@ So we recommend back up specific ICP components:
 
 Based on that, we recommend the following procedure:
 
-![flow](images/ICP Backup.jpg)
+![flow](images/ICP_Backup.jpg)
 
 
 we will describe two backup procedures: 
