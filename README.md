@@ -2,13 +2,8 @@
 
 ## Introduction
 
-ICP is great….
+In this document, we will describe how to back up and restore your IBM Cloud Private (ICP) environment
 
-In this document, we will describe how to back up and restore your ICP environment, deployed to a VMware environment
-
-## Architecture 
-
-Here is the architecture we will use in this document:
 
 ## General guidance on ICP backup
 
@@ -43,18 +38,18 @@ Based on that, we will describe two solutions:
 
 ## Back-burner
 
-[Backup and retore some ICP node](some.md)
+[Backup and restore some ICP node](some.md)
 
 
 ## Additional information
 
 * [How to restore a master node deployed to AWS](https://github.ibm.com/jkwong/icp-aws-hertz/blob/master/MasterNodeRecovery.md)
 
-* <https://www.mirantis.com/blog/everything-you-ever-wanted-to-know-about-using-etcd-with-kubernetes-v1-6-but-were-afraid-to-ask/>
+* [Everything you ever wanted to know about using etcd with Kubernetes v1.6 (but were afraid to ask)](https://www.mirantis.com/blog/everything-you-ever-wanted-to-know-about-using-etcd-with-kubernetes-v1-6-but-were-afraid-to-ask/)
 
-* <https://docs.openshift.com/container-platform/3.5/admin_guide/backup_restore.html#etcd-backup>
+* [OpenShift Backup and Restor](https://docs.openshift.com/container-platform/3.5/admin_guide/backup_restore.html#etcd-backup)
 
-* <https://kubernetes.io/docs/getting-started-guides/ubuntu/backups/>
+* [Kubernetes Backups](https://kubernetes.io/docs/getting-started-guides/ubuntu/backups/)
 
-* <https://coreos.com/tectonic/docs/latest/troubleshooting/bootkube_recovery_tool.html>
+* [Using utilities to recover Tectonic clusters](https://coreos.com/tectonic/docs/latest/troubleshooting/bootkube_recovery_tool.html)
 
