@@ -1,6 +1,6 @@
 # Backup and restore the entire ICP environment
 
-As described in the introduction, we don't recommend using a traditional server backup to persist an ICP environment (because of etcd).
+As described in the introduction, we don't recommend using a traditional server backup to persist an ICP environment after (because of etcd).
 
 However, a full environment backup might be required to quickly restore the environment to its initial state, then apply specific component restore, as documented at [Backup and restore ICP components](components.md)
 

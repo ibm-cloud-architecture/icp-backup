@@ -16,29 +16,35 @@ So we recommend back up specific ICP components:
 * etcd
 * Docker Registry
 * cloudant
-* anything else?
+* MariaDB
+* certificates
 
-Based on that, we will describe two solutions: 
+Based on that, we recommend the following procedure:
+
+![flow](images/ICP Backup.jpg)
+
+
+we will describe two backup procedures: 
 
 * Back up the entire environment, after the initial solution, so that it can be recreated quickly
 
 * Back up individual ICP components
 
-## Solutions
+## Procedures
 
-[Backup and restore the entire environment](entire.md)
+[Backup and restore the entire environment](docs/entire.md)
 
-[Backup and restore ICP components](components.md)
+[Backup and restore ICP components](docs/components.md)
 
 
 ## TBD
 
-[Back up and restore the Persistent Volumes](pvs.md)
+[Back up and restore the Persistent Volumes](docs/pvs.md)
 
 
 ## Back-burner
 
-[Backup and restore some ICP node](some.md)
+[Backup and restore some ICP nodes](docs/some.md)
 
 
 ## Additional information
@@ -47,7 +53,7 @@ Based on that, we will describe two solutions:
 
 * [Everything you ever wanted to know about using etcd with Kubernetes v1.6 (but were afraid to ask)](https://www.mirantis.com/blog/everything-you-ever-wanted-to-know-about-using-etcd-with-kubernetes-v1-6-but-were-afraid-to-ask/)
 
-* [OpenShift Backup and Restor](https://docs.openshift.com/container-platform/3.5/admin_guide/backup_restore.html#etcd-backup)
+* [OpenShift Backup and Restore](https://docs.openshift.com/container-platform/3.5/admin_guide/backup_restore.html#etcd-backup)
 
 * [Kubernetes Backups](https://kubernetes.io/docs/getting-started-guides/ubuntu/backups/)
 
