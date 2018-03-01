@@ -103,7 +103,7 @@ Now copy this file (`/tmp/etcd.db`) to a safe location, outside this node.
 
 We are now ready to test the restoration of etcd.
 
-Let's say that you recovered the initial environment as described in the procedure [Backup and restore the entire environment](docs/entire.md).
+Let's say that you recovered the initial environment as described in the procedure [Backup and restore the entire environment](entire.md).
 
 We can now restore the data on the top of the environment.
 
