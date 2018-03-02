@@ -6,4 +6,10 @@ In this scenario, we will describe how to back up and restore specific ICP compo
 
 [Back up and restore Docker Registry](registry.md)
 
+These components must be backed up in the following order:
+
+* etcd
+* Docker Registry
+
+
 
