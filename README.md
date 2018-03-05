@@ -1,4 +1,4 @@
-# How to back up (and restore) an IBM Cloud Privatre environment
+# How to back up (and restore) an IBM Cloud Private environment
 
 ## Introduction
 
@@ -24,7 +24,7 @@ Based on that, we recommend the following procedure:
 ![flow](images/ICP_Backup.jpg)
 
 
-we will describe two backup procedures: 
+we will describe two backup procedures:
 
 * Back up the entire environment, after the initial solution, so that it can be recreated quickly
 
@@ -58,4 +58,3 @@ we will describe two backup procedures:
 * [Kubernetes Backups](https://kubernetes.io/docs/getting-started-guides/ubuntu/backups/)
 
 * [Using utilities to recover Tectonic clusters](https://coreos.com/tectonic/docs/latest/troubleshooting/bootkube_recovery_tool.html)
-
