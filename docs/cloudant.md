@@ -54,6 +54,7 @@ Now let's simulate a loss of the Docker Registry. To do so, just delete the  und
 ```
 
 It's recommended to use some automated script such as ansible scripts to delete all directories at the same time.
+Here is an [sample ansible script to delete the folders](../scripts/move_cloundant_on_masters.yml)
 
 
 ### Restore your ICP Cloudant database
