@@ -12,4 +12,4 @@ These components must be backed up in the following order:
 * Docker Registry
 
 
-
+They need to be restored in the reverse order
