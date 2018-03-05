@@ -57,7 +57,7 @@ It's recommended to use some automated script such as ansible scripts to delete 
 Here is an [sample ansible script to delete the folders](../scripts/move_cloundant_on_masters.yml)
 
 
-### Restore your ICP Cloudant database
+## Restore your ICP Cloudant database
 
 To restore the Cloudant DB, follow the below steps:
 (You need to have the couchbackup and couchrestore utility installed as mentioned above)
