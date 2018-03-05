@@ -1,0 +1,45 @@
+{
+  "apiVersion": "v1",
+  "kind": "Service",
+  "metadata": {
+    "name": "cloudantdb-ext",
+    "namespace": "kube-system",
+    "resourceVersion": "1240",
+    "labels": {
+      "app": "icp-ds"
+    }
+  },
+  "spec": {
+    "ports": [
+      {
+        "name": "p4369",
+        "protocol": "TCP",
+        "port": 4369,
+        "targetPort": 4369
+      },
+      {
+        "name": "p5984",
+        "protocol": "TCP",
+        "port": 5984,
+        "targetPort": 5984
+      },
+      {
+        "name": "p6984",
+        "protocol": "TCP",
+        "port": 6984,
+        "targetPort": 6984
+      },
+      {
+        "name": "p9000",
+        "protocol": "TCP",
+        "port": 9000,
+        "targetPort": 9000
+      }
+    ],
+    "selector": {
+      "app": "icp-ds"
+    },
+    "type": "NodePort",
+    "sessionAffinity": "None"
+  }
+}

@@ -1,89 +1,51 @@
-# Back up and restore the Docker Registry in IBM Cloud Private
+# Back up and restore the Cloudant database in IBM Cloud Private
 
-In this page, we'll describe how to back up and restore the Docker Registry in IBM Cloud Private.
+IBM Cloudant local is used by IBM Cloud Private(ICP) to store information for OIDC service, metering service (IBM® Cloud Product Insights), Helm repository server, and Helm API server.
+It runs as a kubernetes Statefulset and mount to local host path. The StatefulSet is exposed as HeadLess service as “cloudantdb”.
+There are 2 databases holding the ICP metadata:
+
+* platform-db
+* security-data
+
+In this page, we'll describe how to back up and restore the Cloudant local db in IBM Cloud Private.
 
 
-Before we back up the Docker images stored in the Registry, let's load an image there.
+## Backup the Cloudant Database
 
-## Configure authentication for the Docker CLI
+In an ICP HA environment, Cloudant DB runs in a cluster that spread across multiple ICP master nodes. The most reliable approach is to use the [Cloudant DB backup and restore facility](https://developer.ibm.com/clouddataservices/2016/03/22/simple-couchdb-and-cloudant-backup/).
 
-Follow the steps at [Configuring authentication for the Docker CLI](https://www.ibm.com/support/knowledgecenter/SSBS6K_2.1.0/manage_images/configuring_docker_cli.html) to configure authentication.
+Here are the steps you can follow:
 
-## Add an image in the ICP Docker Registry
+1. Expose cloudantdb as a NodePort service
+ICP packages the cloudantdb as a kubernetes headless service, we need to expose it as NodePort so that we can run backup utility from outside of ICP cluster.   
+*NOTE: A better solution is to deploy a cloudant backup kubernetes job into the ICP that connects to the cloudantdb service, and perform dailly or scheduled backup.*
 
-Run the following commands in any machine that has access to the ICP master node and has Docker engine installed.
+You can reference the [sample NodePort service definition file](../scripts/CloudantDBNodePort.yaml) to create your CloudantDB NodePort service, run the command to create the service:
+```
+  kubectl --namespace=kube-system apply -f CloudantDBNodePort.yaml
+```
+Note down the HTTP or HTTPs TCP port for the exposed Cloudant service (for example: HTTP 31890 for TCP port 5984)
 
-First, pull an nginx image:
+2. Install couchdb backup utility
 
 ```
-docker pull nginx
+  npm install -g @cloudant/couchbackup
 ```
 
-You will see the following output:
+3. Find the cloudant database admin user name and password from ICP secret via ICP console or command line tool.
 
-```text
-patro:icp-backup edu$ docker pull nginx
-Using default tag: latest
-latest: Pulling from library/nginx
-8176e34d5d92: Pull complete
-5b19c1bdd74b: Pull complete
-4e9f6296fa34: Pull complete
-Digest: sha256:4771d09578c7c6a65299e110b3ee1c0a2592f5ea2618d23e4ffe7a4cab1ce5de
-Status: Downloaded newer image for nginx:latest
-```
-
-Now log in to your Docker Registry:
+4. Backup the Cloudant DB with the following command:
 
 ```
-docker login mycluster.icp:8500
+  couchbackup --url "http://admin:orange@172.16.40.2:31890" --log backup.log --db "platform-db" > platform-db-backup.txt
+  couchbackup --url "http://admin:orange@172.16.40.2:31890" --log backup.log --db "security-data" > security-data-backup.txt
 ```
 
-You need to provide the admin user and password.
+Where the port 31890 is the NodePort maps to the Cloudant endpoint of 5984.
 
-Now, let's tag the image, by running the following command:
+Keep the backup file in a safe place, you will need it to store in a DR or new site. 
 
-```
-docker tag nginx mycluster.icp:8500/default/nginx
-```
-
-Finally, let's push the image to the Docker Registry:
-
-```
-docker push mycluster.icp:8500/default/nginx
-```
-
-You will see the following output:
-
-```
-patro:.docker edu$ docker push mycluster.icp:8500/default/nginx
-The push refers to repository [mycluster.icp:8500/default/nginx]
-e89b70d28795: Pushed
-832a3ae4ac84: Pushed
-014cf8bfcb2d: Pushed
-latest: digest: sha256:600bff7fb36d7992512f8c07abd50aac08db8f17c94e3c83e47d53435a1a6f7c size: 948
-```
-
-
-Now if you open your browser to:
-
-```
-https://$MASTER_ID:8443/console/images
-```
-
-You will see the nginx image listed there.
-
-## Back up the ICP Docker Registry
-
-Now that we have images loaded into the ICP Docker Registry, we can back up the directory, by running the following command in one of the master nodes:
-
-```
-cd /var/lib/registry
-tar czvf /tmp/icp_dr.tar.gz .
-```
-
-Now move the file `/tmp/icp_dr.tar.gz` to a safe location, outside the master node
-
-## Simulate a loss of the ICP Docker Registry
+## Simulate a loss of the ICP Cloudant database
 
 Now let's simulate a loss of the Docker Registry. To do, just delete the files under /var/lib/registry:
 
@@ -91,7 +53,7 @@ Now let's simulate a loss of the Docker Registry. To do, just delete the files u
 rm -rf /var/lib/registry/*
 ```
 
-Now if you open your browser to: 
+Now if you open your browser to:
 
 ```
 https://$MASTER_ID:8443/console/images
@@ -99,7 +61,7 @@ https://$MASTER_ID:8443/console/images
 
 You will see an empty response.
 
-### Restore your ICP Docker Registry
+### Restore your ICP Cloudant database
 
 To restore your Docker Registry, bring back to file `/tmp/icp_dr.tar.gz` to directory `/tmp` and run the following commands:
 
@@ -115,4 +77,3 @@ kubectl delete pod image-manager-0 -n kube-system
 ```
 
 Now if you re-open the URL `https://$MASTER_ID:8443/console/images`, you shuld see the images restored.
-
