@@ -43,37 +43,33 @@ Note down the HTTP or HTTPs TCP port for the exposed Cloudant service (for examp
 
 Where the port 31890 is the NodePort maps to the Cloudant endpoint of 5984.
 
-Keep the backup file in a safe place, you will need it to store in a DR or new site. 
+Keep the backup file in a safe place, you will need it to store in a DR or new site.
 
 ## Simulate a loss of the ICP Cloudant database
 
-Now let's simulate a loss of the Docker Registry. To do, just delete the files under /var/lib/registry:
+Now let's simulate a loss of the Docker Registry. To do so, just delete the  under `/opt/ibm/cfc/cloudant` from every master nodes:
 
 ```
-rm -rf /var/lib/registry/*
+  rm -rf /opt/ibm/cfc/cloudant
 ```
 
-Now if you open your browser to:
+It's recommended to use some automated script such as ansible scripts to delete all directories at the same time.
 
-```
-https://$MASTER_ID:8443/console/images
-```
-
-You will see an empty response.
 
 ### Restore your ICP Cloudant database
 
-To restore your Docker Registry, bring back to file `/tmp/icp_dr.tar.gz` to directory `/tmp` and run the following commands:
+To restore the Cloudant DB, follow the below steps:
+(You need to have the couchbackup and couchrestore utility installed as mentioned above)
 
+
+1. Expose the target ICP Cloudant DB as NodePort service (or deploy the restore utility as kubernetes job)
+
+2. Move the backup source file to the target Environment
+
+3. Restore the database:
 ```
-cd /var/lib/registry
-tar xvzf /tmp/icp_dr.tar.gz
+  couchrestore --url "http://admin:orange@172.16.40.2:31890" --db "platform-db" < platform-db-backup.txt
+  couchrestore --url "http://admin:orange@172.16.40.2:31890" --db "security-data-db" < security-data-backup.txt
 ```
 
-Now run the following command to recycle the image manager Pod:
-
-```
-kubectl delete pod image-manager-0 -n kube-system
-```
-
-Now if you re-open the URL `https://$MASTER_ID:8443/console/images`, you shuld see the images restored.
+Where the port 31890 is the NodePort maps to the Cloudant endpoint of 5984.
