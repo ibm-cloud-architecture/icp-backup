@@ -16,6 +16,13 @@ In an ICP HA environment, Cloudant DB runs in a cluster that spread across multi
 
 Here are the steps you can follow:
 
+* Clone this github project:
+
+```
+git clone https://github.com/ibm-cloud-architecture/icp-backup.git
+cd icp-backup
+```
+
 * Expose cloudantdb as a NodePort service
 ICP packages the cloudantdb as a kubernetes headless service, we need to expose it as NodePort so that we can run backup utility from outside of ICP cluster.   
 
@@ -24,10 +31,11 @@ ICP packages the cloudantdb as a kubernetes headless service, we need to expose 
 You can reference the [sample NodePort service definition file](../scripts/CloudantDBNodePort.yaml) to create your CloudantDB NodePort service, run the command to create the service, being in the directory `scripts`:
 
 ```
-  kubectl --namespace=kube-system apply -f CloudantDBNodePort.yaml
+cd scripts
+kubectl --namespace=kube-system apply -f CloudantDBNodePort.yaml
 ```
 
-Note down the HTTP port for the exposed Cloudant service, by running the following command (for example: HTTP 31890 for Pod TCP port 5984):
+Now define the HTTP port for the exposed Cloudant service, by running the following command (for example: HTTP 31890 for Pod TCP port 5984):
 
 ```
 kubectl --namespace=kube-system get svc cloudantdb-ext -o json
@@ -35,7 +43,7 @@ kubectl --namespace=kube-system get svc cloudantdb-ext -o json
 export PORT=<Node port associated with Pod port 5984>
 ```
 
-* Install node, if necessary
+* Install node, if it is not installed
 
 Run the following command to install node:
 
@@ -43,7 +51,7 @@ Run the following command to install node:
 apt install nodejs-legacy
 ```
 
-* Install npm, if necessary
+* Install npm, if it is not installed
 
 Run the following command to install npm:
 
@@ -140,17 +148,59 @@ Here is an [sample ansible script to delete the folders](../scripts/move_clounda
 ## Restore your ICP Cloudant database
 
 To restore the Cloudant DB, follow the below steps:
-(You need to have the couchbackup and couchrestore utility installed as mentioned above)
 
+* Configure system to install Node 8:
 
-1. Expose the target ICP Cloudant DB as NodePort service (or deploy the restore utility as kubernetes job)
-
-2. Move the backup source file to the target Environment
-
-3. Restore the database:
 ```
-  couchrestore --url "http://admin:orange@172.16.40.2:31890" --db "platform-db" < platform-db-backup.txt
-  couchrestore --url "http://admin:orange@172.16.40.2:31890" --db "security-data-db" < security-data-backup.txt
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+```
+
+* Install Node 8, if it is not installed
+
+Run the following command to install node:
+
+```
+apt install nodejs
+```
+
+* Install npm, if it is not installed
+
+Run the following command to install npm:
+
+```
+apt install -y npm
+```
+
+* Install couchrestore utility:
+
+```
+npm install -g @cloudant/couchbackup
+```
+
+* Clone this github project:
+
+```
+git clone https://github.com/ibm-cloud-architecture/icp-backup.git
+cd icp-backup
+```
+
+* Expose the target ICP Cloudant DB as NodePort service, as documented above (or deploy the restore utility as kubernetes Job):
+
+```
+cd scripts
+kubectl --namespace=kube-system apply -f CloudantDBNodePort.yaml
+kubectl --namespace=kube-system get svc cloudantdb-ext -o json
+
+export PORT=<Node port associated with Pod port 5984>
+
+```
+
+* Move the backup source file to the target Environment
+
+* Restore the database, where IP is the IP address of the master node to be restored:
+```
+  couchrestore --url "http://admin:orange@$IP:$PORT" --db "platform-db" < platform-db-backup.txt
+  couchrestore --url "http://admin:orange@$IP:$PORT" --db "security-data-db" < security-data-backup.txt
 ```
 
 Where the port 31890 is the NodePort maps to the Cloudant endpoint of 5984.
