@@ -114,9 +114,9 @@ Let's say that you recovered the initial environment as described in the procedu
 
 We can now restore the data on the top of the environment.
 
-## Etcd restore on signle master ICP configuration
+### Etcd restore on single master ICP configuration
 
-### Stop etcd Pod
+#### Stop etcd Pod
 
 Before we can restore the data, we need to stop the etcd Pod. Run the following command:
 
@@ -133,7 +133,7 @@ docker ps | grep etc
 
 You should see any empty response
 
-### Purge etcd data
+#### Purge etcd data
 
 Next, we need to purge the current etcd data.
 
@@ -143,7 +143,7 @@ Run the following command:
 rm -rf /var/lib/etcd
 ```
 
-### Load snapshot data
+#### Load snapshot data
 
 Assuming you have the file `/tmp/etcd.db` in your environment, containing a backup of your etcd, run the following procedure to restore etcd:
 
@@ -170,7 +170,7 @@ root@icp-master:/etc/cfc/pods# etcdctl3 snapshot restore /data/etcd.db \
 
 The command above loads the data to directory /var/lib/etcd/restored.
 
-### Move the data to the right directory
+#### Move the data to the right directory
 
 
 We need now to move to expected directory, by running the following commands:
@@ -180,7 +180,7 @@ mv /var/lib/etcd/restored/* /var/lib/etcd/
 rmdir /var/lib/etcd/restored
 ```
 
-### Re-enable etcd Pod
+#### Re-enable etcd Pod
 
 we can re-enable the etcd Pod. Run the following command:
 
@@ -203,7 +203,7 @@ root@icp-master:~# docker ps | grep etcd
 
 ```
 
-## Validate the configuration
+### Validate the configuration
 
 Now, let's validate that the new environment has the data restored in etcd.
 
@@ -241,7 +241,7 @@ snake-9         1         48m
 Congratulations! You restored successfully your etcd!
 
 
-## Etcd restore on multi master ICP configuration
+### Etcd restore on multi-master ICP configuration
 
 In a multi master ICP environment you'll need to restore a consistent cluster.
 This can either be done via restoring a single node, and then growing the cluster out to the desired size, or
@@ -252,9 +252,9 @@ To reduce the effort required we will use ansible where possible to execute comm
 It is assumed that the ansible commands are run from the boot node (normally master1) which holds the cluster configuration files from the
 initial installation. The configuration files are typically held in `/opt/ibm/cluster`. Adjust commands accordingly if your installation used a different directory.
 
-### Preprequisites
+#### Preprequisites
 
-#### Ansible
+##### Ansible
 
 Ensure that Ansible is installed on the boot node.
 
@@ -264,7 +264,7 @@ which ansible
 
 If this command returns an empty response, please install ansible on this node.
 
-#### jq
+##### jq
 
 All master nodes require the `jq` json parsing tool.
 On ubuntu, you can ensure this tool is installed with the following command:
@@ -273,7 +273,7 @@ On ubuntu, you can ensure this tool is installed with the following command:
 ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m package -a "use=apt name=jq state=present"
 ```
 
-### Stop kubernetes on all nodes
+#### Stop kubernetes on all nodes
 
 Before we can restore the data, we need to stop the etcd Pod. To ensure cluster consistency we will also shut down all other pods managed by hyperkube.
 
@@ -302,7 +302,7 @@ ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --priv
 ```
 
 
-### Purge etcd data
+#### Purge etcd data
 
 Next, we need to purge the current etcd data on all master nodes.
 
@@ -310,7 +310,7 @@ Next, we need to purge the current etcd data on all master nodes.
 ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m shell -a "rm -rf /var/lib/etcd"
 ```
 
-### Copy etcd snapshot to all master nodes
+#### Copy etcd snapshot to all master nodes
 
 Assuming you have the file `/tmp/etcd.db` in your environment, containing a backup of your etcd, run the following procedure to copy the file to all master nodes:
 
@@ -318,7 +318,7 @@ Assuming you have the file `/tmp/etcd.db` in your environment, containing a back
 ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m copy -a "src=/tmp/snapshot.db dest=/tmp/snapshot.db"
 ```
 
-### Restore the snapshot on all master nodes
+#### Restore the snapshot on all master nodes
 
 Assuming you have cloned the git repo, and are located in `icp-backup/scripts`, run the following command
 
@@ -329,7 +329,7 @@ ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --priv
 The command above loads the data to directory /var/lib/etcd/restored on all master nodes, with the cluster settings configured.
 
 
-### Move the data to the right directory
+#### Move the data to the right directory
 
 
 We need now to move to expected directory, by running the following commands:
@@ -338,7 +338,7 @@ We need now to move to expected directory, by running the following commands:
 ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m shell -a "mv /var/lib/etcd/restored/* /var/lib/etcd/"
 ```
 
-### Purge kubelet pods data
+#### Purge kubelet pods data
 
 Before we re-enable kubelet and etcd with the newly restored data, we will purge kubelet pods directory to ensure consistency between the cached kubelet data and the etcd data.
 We will use a simple script to ensure that all docker mounts are unmounted before purging the pods directory.
@@ -348,7 +348,7 @@ ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --priv
 ```
 
 
-### Re-enable kubelet and etcd Pod
+#### Re-enable kubelet and etcd Pod
 
 Now that the etcd cluster data is restored, we can re-enable kubelet and instruct it to start the etcd cluster.
 Run the following commands:
@@ -364,7 +364,7 @@ It will take a few seconds for etcd to come back. We can use ansible to monitor 
 ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m wait_for -a  "port=4001 state=started"
 ```
 
-### Validate etcd cluster health
+#### Validate etcd cluster health
 
 To setup the etcdctl tool to query the etcd cluster, run the following commands, adjusting the IP address for the current node you're working on
 
@@ -393,7 +393,7 @@ member fd422379fda50e48 is healthy: got healthy result from https://10.0.0.3:238
 cluster is healthy
 ```
 
-### Start the rest of the ICP cluster pods
+#### Start the rest of the ICP cluster pods
 
 Now that etcd is restored to a healthy state, we can let kubelet start the rest of the core kubernetes pods, which in turn will
 start the workloads managed by kubernetes.
@@ -410,7 +410,7 @@ You can monitor the pods in the `kube-system` namespace by running
 kubectl get pods --namespace=kube-system
 ```
 
-## Validate the configuration
+### Validate the configuration
 
 Now, let's validate that the new environment has the data restored in etcd.
 
