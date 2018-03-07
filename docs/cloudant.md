@@ -16,32 +16,112 @@ In an ICP HA environment, Cloudant DB runs in a cluster that spread across multi
 
 Here are the steps you can follow:
 
-1. Expose cloudantdb as a NodePort service
+* Expose cloudantdb as a NodePort service
 ICP packages the cloudantdb as a kubernetes headless service, we need to expose it as NodePort so that we can run backup utility from outside of ICP cluster.   
+
 *NOTE: A better solution is to deploy a cloudant backup kubernetes job into the ICP that connects to the cloudantdb service, and perform dailly or scheduled backup.*
 
-You can reference the [sample NodePort service definition file](../scripts/CloudantDBNodePort.yaml) to create your CloudantDB NodePort service, run the command to create the service:
+You can reference the [sample NodePort service definition file](../scripts/CloudantDBNodePort.yaml) to create your CloudantDB NodePort service, run the command to create the service, being in the directory `scripts`:
+
 ```
   kubectl --namespace=kube-system apply -f CloudantDBNodePort.yaml
 ```
-Note down the HTTP or HTTPs TCP port for the exposed Cloudant service (for example: HTTP 31890 for TCP port 5984)
 
-2. Install couchdb backup utility
+Note down the HTTP port for the exposed Cloudant service, by running the following command (for example: HTTP 31890 for Pod TCP port 5984):
+
+```
+kubectl --namespace=kube-system get svc cloudantdb-ext -o json
+
+export PORT=<Node port associated with Pod port 5984>
+```
+
+* Install node, if necessary
+
+Run the following command to install node:
+
+```
+apt install nodejs-legacy
+```
+
+* Install npm, if necessary
+
+Run the following command to install npm:
+
+```
+apt install -y npm
+```
+
+* Install couchdb backup utility
 
 ```
   npm install -g @cloudant/couchbackup
 ```
 
-3. Find the cloudant database admin user name and password from ICP secret via ICP console or command line tool.
-
-4. Backup the Cloudant DB with the following command:
+* Switch the kube-system namespace:
 
 ```
-  couchbackup --url "http://admin:orange@172.16.40.2:31890" --log backup.log --db "platform-db" > platform-db-backup.txt
-  couchbackup --url "http://admin:orange@172.16.40.2:31890" --log backup.log --db "security-data" > security-data-backup.txt
+kubectl config set-context mycluster.icp-context --user admin --namespace=kube-system
 ```
 
-Where the port 31890 is the NodePort maps to the Cloudant endpoint of 5984.
+* Find the cloudant database admin user name and password from ICP secret, by running the following command:
+
+```
+kubectl get secret cloudant-credentials -o json | grep cloudand_db_url | grep -v last | awk '{print $2}' | tr -d ',' | tr -d '"' | base64 -d
+```
+
+* Create a directory to save 
+
+* Backup the Cloudant DB with the following commands:
+
+```
+  couchbackup --url "http://admin:orange@$IP:$PORT" --log backup.log --db "platform-db" > platform-db-backup.txt
+```
+
+where IP is the IP address of the master node, and PORT, the port number defined above.
+
+You will see the following message:
+
+```
+root@icp-master:~/backup# couchbackup --url "http://admin:orange@$IP:$PORT" --log backup.log --db "platform-db" > platform-db-backup.txt
+================================================================================
+Performing backup on http://****:****@localhost:30069/platform-db using configuration:
+{
+  "bufferSize": 500,
+  "log": "backup.log",
+  "mode": "full",
+  "parallelism": 5
+}
+================================================================================
+  couchbackup:backup Fetching all database changes... +0ms
+  couchbackup:backup Total batches received: 1 +137ms
+  couchbackup:backup Written batch ID: 0 Total document revisions written: 39 Time: 0.265 +133ms
+  couchbackup:backup Finished - Total document revisions written: 39 +3ms
+
+```
+
+and the following command:
+
+```
+  couchbackup --url "http://admin:orange@$IP:$PORT" --log backup.log --db "security-data" > security-data-backup.txt
+```
+
+and you will see the following message:
+
+```
+root@icp-master:~/backup#   couchbackup --url "http://admin:orange@$IP:$PORT" --log backup.log --db "security-data" > security-data-backup.txt
+================================================================================
+Performing backup on http://****:****@localhost:30069/security-data using configuration:
+{
+  "bufferSize": 500,
+  "log": "backup.log",
+  "mode": "full",
+  "parallelism": 5
+}
+================================================================================
+  couchbackup:backup Fetching all database changes... +0ms
+  couchbackup:backup Finished - Total document revisions written: 0 +185ms
+
+```
 
 Keep the backup file in a safe place, you will need it to store in a DR or new site.
 
