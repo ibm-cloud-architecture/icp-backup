@@ -7,7 +7,7 @@ In this document, we will describe how to back up and restore your IBM Cloud Pri
 
 ## General guidance on ICP backup
 
-ICP and Kubernetes realy heavily on etcd and cloudant to store the configuration. According to the etcd documentation (https://coreos.com/etcd/docs/latest/v2/admin_guide.html#disaster-recovery)
+ICP and Kubernetes rely heavily on etcd and cloudant to store the configuration. According to the etcd documentation (https://coreos.com/etcd/docs/latest/v2/admin_guide.html#disaster-recovery)
 
 > A user should avoid restarting an etcd member with a data directory from an out-of-date backup. Using an out-of-date data directory can lead to inconsistency as the member had agreed to store information via raft then re-joins saying it needs that information again. For maximum safety, if an etcd member suffers any sort of data corruption or loss, it must be removed from the cluster. Once removed the member can be re-added with an empty data directory.
 
@@ -24,7 +24,7 @@ Based on that, we recommend the following procedure:
 ![flow](images/ICP_Backup.jpg)
 
 
-we will describe two backup procedures:
+We will describe two backup procedures:
 
 * Back up the entire environment, after the initial solution, so that it can be recreated quickly
 
