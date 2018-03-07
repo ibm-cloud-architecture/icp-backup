@@ -1,13 +1,13 @@
 # Backup and restore etcd in IBM Cloud Private
 
-To back up and restore etcd, you need to be logged to a master node
-
-After you connect to a master node, you need to clone this github repository:
-
 The backup process is the same, whether you're running single master or multi-master configurations of ICP.
 In both cases the backup is always taken from a single node, to ensure consistency on restore.
 
 In the case of restore to a multinode cluster, all nodes are restored from the same backup copy.
+
+To back up and restore etcd, you need to be logged to a master node
+
+After you connect to a master node, you need to clone this github repository:
 
 
 ```
