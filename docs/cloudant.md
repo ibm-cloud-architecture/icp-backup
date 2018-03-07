@@ -127,7 +127,7 @@ Keep the backup file in a safe place, you will need it to store in a DR or new s
 
 ## Simulate a loss of the ICP Cloudant database
 
-Now let's simulate a loss of the Docker Registry. To do so, just delete the  under `/opt/ibm/cfc/cloudant` from every master nodes:
+Now let's simulate a loss of the Docker Registry. To do so, just delete the under `/opt/ibm/cfc/cloudant` from every master nodes:
 
 ```
   rm -rf /opt/ibm/cfc/cloudant
