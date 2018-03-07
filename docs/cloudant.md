@@ -9,19 +9,67 @@ There are 2 databases holding the ICP metadata:
 
 In this page, we'll describe how to back up and restore the Cloudant local db in IBM Cloud Private.
 
+Before we back up the Cloudant database, let's insert some data, to ensure they are recovered properly.
 
-## Backup the Cloudant Database
+## Load data into Cloudant
+
+To load data into Cloudant, we will register a new Helm repository.
+
+Run the following steps in the ICP UI:
+
+* On the menu, click *Manage -> Helm Repositories*:
+
+![repositories](cloudant/Repositories.png)
+
+* Click *Add repository*:
+
+![add_repo](cloudant/AddRepo.png)
+
+* In the dialog, type the following information:
+
+1. *Name*: backup_repo
+2. *URL*: https://kubernetes-charts.storage.googleapis.com
+
+![backup_repo](cloudant/BackupRepo.png)
+
+* click *Add*
+
+You will see the new repository in the list of repositories:
+
+![repos](cloudant/NewRepositories.png)
+
+## Back up the Cloudant Database
 
 In an ICP HA environment, Cloudant DB runs in a cluster that spread across multiple ICP master nodes. The most reliable approach is to use the [Cloudant DB backup and restore facility](https://developer.ibm.com/clouddataservices/2016/03/22/simple-couchdb-and-cloudant-backup/).
 
 Here are the steps you can follow:
 
-* Clone this github project:
+* In one of the master nodes, clone this github project:
 
 ```
 git clone https://github.com/ibm-cloud-architecture/icp-backup.git
 cd icp-backup
 ```
+
+* Install kubectl, if not installed:
+
+```
+curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+
+
+chmod +x ./kubectl
+mv ./kubectl /usr/local/bin/kubectl
+```
+
+* Configure kubectl:
+
+1. Log on to the ICP UI
+2. Click on the word admin at the top right corner:
+![admin](cloudant/UserName.png)
+3. Click Configure Client
+Click the blue icon in the text area:
+![icon](cloudant/Icon.png)
+4. Paste it in your Terminal
 
 * Expose cloudantdb as a NodePort service
 ICP packages the cloudantdb as a kubernetes headless service, we need to expose it as NodePort so that we can run backup utility from outside of ICP cluster.   
@@ -48,7 +96,7 @@ export PORT=<Node port associated with Pod port 5984>
 Run the following command to install node:
 
 ```
-apt install nodejs-legacy
+apt install -y nodejs-legacy
 ```
 
 * Install npm, if it is not installed
@@ -62,7 +110,7 @@ apt install -y npm
 * Install couchdb backup utility
 
 ```
-  npm install -g @cloudant/couchbackup
+npm install -g @cloudant/couchbackup
 ```
 
 * Switch the kube-system namespace:
@@ -79,13 +127,18 @@ kubectl get secret cloudant-credentials -o json | grep cloudand_db_url | grep -v
 
 * Create a directory to save 
 
+```
+mkdir ~/backup
+cd ~/backup
+```
+
 * Backup the Cloudant DB with the following commands:
 
 ```
-  couchbackup --url "http://admin:orange@$IP:$PORT" --log backup.log --db "platform-db" > platform-db-backup.txt
+couchbackup --url "http://admin:orange@localhost:$PORT" --log backup.log --db "platform-db" > platform-db-backup.txt
 ```
 
-where IP is the IP address of the master node, and PORT, the port number defined above.
+where PORT is the port number defined above.
 
 You will see the following message:
 
@@ -110,7 +163,7 @@ Performing backup on http://****:****@localhost:30069/platform-db using configur
 and the following command:
 
 ```
-  couchbackup --url "http://admin:orange@$IP:$PORT" --log backup.log --db "security-data" > security-data-backup.txt
+couchbackup --url "http://admin:orange@$IP:$PORT" --log backup.log --db "security-data" > security-data-backup.txt
 ```
 
 and you will see the following message:
@@ -138,7 +191,7 @@ Keep the backup file in a safe place, you will need it to store in a DR or new s
 Now let's simulate a loss of the Docker Registry. To do so, just delete the files under `/opt/ibm/cfc/cloudant` from every master nodes:
  
 ```
-  rm -rf /opt/ibm/cfc/cloudant
+rm -rf /opt/ibm/cfc/cloudant
 ```
 
 It's recommended to use some automated script such as ansible scripts to delete all directories at the same time.
@@ -160,7 +213,7 @@ curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 Run the following command to install node:
 
 ```
-apt install nodejs
+apt install -y nodejs
 ```
 
 * Install npm, if it is not installed
@@ -197,9 +250,9 @@ export PORT=<Node port associated with Pod port 5984>
 
 * Move the backup source file to the target Environment
 
-* Restore the database, where IP is the IP address of the master node to be restored:
+* Restore the database:
 ```
-  couchrestore --url "http://admin:orange@$IP:$PORT" --db "platform-db" < platform-db-backup.txt
-  couchrestore --url "http://admin:orange@$IP:$PORT" --db "security-data-db" < security-data-backup.txt
+couchrestore --url "http://admin:orange@localhost:$PORT" --db "platform-db" < platform-db-backup.txt
+couchrestore --url "http://admin:orange@localhost:$PORT" --db "security-data-db" < security-data-backup.txt
 ```
 
