@@ -203,4 +203,3 @@ export PORT=<Node port associated with Pod port 5984>
   couchrestore --url "http://admin:orange@$IP:$PORT" --db "security-data-db" < security-data-backup.txt
 ```
 
-Where the port 31890 is the NodePort maps to the Cloudant endpoint of 5984.
