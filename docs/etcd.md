@@ -43,9 +43,9 @@ USAGE:
 ## Run some workloads in ICP
 
 Before we back up etcd in ICP, let's load some data.
-You can deploy any application or even crete some Kubernetes config maps.
+You can deploy any application or even create some Kubernetes config maps.
 
-The following script creates and deletes config maps continuosly:
+The following script creates and deletes config maps continuously:
 
 ```
 ./createConfigMaps.sh

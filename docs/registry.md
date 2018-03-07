@@ -114,5 +114,5 @@ Now run the following command to recycle the image manager Pod:
 kubectl delete pod image-manager-0 -n kube-system
 ```
 
-Now if you re-open the URL `https://$MASTER_ID:8443/console/images`, you shuld see the images restored.
+Now if you re-open the URL `https://$MASTER_ID:8443/console/images`, you should see the images restored.
 
