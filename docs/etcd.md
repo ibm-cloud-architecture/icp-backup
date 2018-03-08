@@ -252,6 +252,12 @@ To reduce the effort required we will use ansible where possible to execute comm
 It is assumed that the ansible commands are run from the boot node (normally master1) which holds the cluster configuration files from the
 initial installation. The configuration files are typically held in `/opt/ibm/cluster`. Adjust commands accordingly if your installation used a different directory.
 
+Define the following environment variable, according to your installation:
+
+```
+export CLUSTER_DIR=/opt/ibm/cluster
+```
+
 #### Preprequisites
 
 ##### Ansible
@@ -262,43 +268,44 @@ Ensure that Ansible is installed on the boot node.
 which ansible
 ```
 
-If this command returns an empty response, please install ansible on this node.
+If this command returns an empty response, install ansible on this node.
 
 ##### jq
 
 All master nodes require the `jq` json parsing tool.
-On ubuntu, you can ensure this tool is installed with the following command:
+On Ubuntu, you can ensure this tool is installed with the following command:
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m package -a "use=apt name=jq state=present"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m package -a "use=apt name=jq state=present"
 ```
 
-#### Stop kubernetes on all nodes
+#### Stop Kubernetes on all nodes
 
 Before we can restore the data, we need to stop the etcd Pod. To ensure cluster consistency we will also shut down all other pods managed by hyperkube.
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -a "mkdir -p /etc/cfc/podbackup"
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m shell -a "mv /etc/cfc/pods/*.json /etc/cfc/podbackup"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -a "mkdir -p /etc/cfc/podbackup"
+
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "mv /etc/cfc/pods/*.json /etc/cfc/podbackup"
 
 ```
 
 Wait for etcd to shut down on all nodes:
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m wait_for -a  "port=4001 state=stopped"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m wait_for -a  "port=4001 state=stopped"
 ```
 
 Once etcd has stopped, we will shut down kubelet running this command on all master nodes:
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m service -a "name=kubelet state=stopped"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m service -a "name=kubelet state=stopped"
 ```
 
 Once kubelet has stopped, we will restart the docker service to ensure all pods not managed by kubelet is shut down.
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m service -a "name=docker state=restarted"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m service -a "name=docker state=restarted"
 ```
 
 
@@ -307,7 +314,7 @@ ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --priv
 Next, we need to purge the current etcd data on all master nodes.
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m shell -a "rm -rf /var/lib/etcd"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "rm -rf /var/lib/etcd"
 ```
 
 #### Copy etcd snapshot to all master nodes
@@ -315,15 +322,15 @@ ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --priv
 Assuming you have the file `/tmp/etcd.db` in your environment, containing a backup of your etcd, run the following procedure to copy the file to all master nodes:
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m copy -a "src=/tmp/snapshot.db dest=/tmp/snapshot.db"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m copy -a "src=/tmp/etcd.db dest=/tmp/snapshot.db"
 ```
 
 #### Restore the snapshot on all master nodes
 
-Assuming you have cloned the git repo, and are located in `icp-backup/scripts`, run the following command
+Assuming you have cloned the git repo, and are located in `icp-backup/scripts`, run the following command:
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m script -a "./multimaster-etcd-restore.sh"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m script -a "./multimaster-etcd-restore.sh"
 ```
 
 The command above loads the data to directory /var/lib/etcd/restored on all master nodes, with the cluster settings configured.
@@ -335,7 +342,7 @@ The command above loads the data to directory /var/lib/etcd/restored on all mast
 We need now to move to expected directory, by running the following commands:
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m shell -a "mv /var/lib/etcd/restored/* /var/lib/etcd/"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "mv /var/lib/etcd/restored/* /var/lib/etcd/"
 ```
 
 #### Purge kubelet pods data
@@ -344,7 +351,7 @@ Before we re-enable kubelet and etcd with the newly restored data, we will purge
 We will use a simple script to ensure that all docker mounts are unmounted before purging the pods directory.
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m script -a "./purge_kubelet_pods.sh"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m script -a "./purge_kubelet_pods.sh"
 ```
 
 
@@ -354,14 +361,15 @@ Now that the etcd cluster data is restored, we can re-enable kubelet and instruc
 Run the following commands:
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m service -a "name=kubelet state=started"
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m shell -a "mv /etc/cfc/podbackup/etcd.json /etc/cfc/pods"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m service -a "name=kubelet state=started"
+
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "mv /etc/cfc/podbackup/etcd.json /etc/cfc/pods"
 ```
 
 It will take a few seconds for etcd to come back. We can use ansible to monitor the progess:
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m wait_for -a  "port=4001 state=started"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m wait_for -a  "port=4001 state=started"
 ```
 
 #### Validate etcd cluster health
@@ -399,7 +407,7 @@ Now that etcd is restored to a healthy state, we can let kubelet start the rest 
 start the workloads managed by kubernetes.
 
 ```
-ansible master -i /opt/ibm/cluster/hosts -e @/opt/ibm/cluster/config.yaml --private-key=/opt/ibm/cluster/ssh_key -m shell -a "mv /etc/cfc/podbackup/etcd.json /etc/cfc/pods"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "mv /etc/cfc/podbackup/*.json /etc/cfc/pods"
 ```
 
 You can expect it to take several minutes for all pods to be restarted.
