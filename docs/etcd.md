@@ -168,7 +168,7 @@ root@icp-master:/etc/cfc/pods# etcdctl3 snapshot restore /data/etcd.db \
 
 ```
 
-The command above loads the data to directory /var/lib/etcd/restored.
+The command above loads the data to directory `/var/lib/etcd/restored`.
 
 #### Move the data to the right directory
 
@@ -194,7 +194,7 @@ It will take a few seconds for etcd to come back. You can see the progress by ru
 docker ps | grep etcd
 ```
 
-Eventually, you should see a response like this:
+Eventually (it might take a few minutes), you should see a response like this:
 
 ```
 root@icp-master:~# docker ps | grep etcd
@@ -248,7 +248,7 @@ This can either be done via restoring a single node, and then growing the cluste
 you can restore the entire cluster from the same backup copy at the same time. In this section we will describe how to
 perform the full cluster restore.
 
-To reduce the effort required we will use ansible where possible to execute commands on all master nodes simulaniously.
+To reduce the effort required we will use ansible where possible to execute commands on all master nodes simultaneously.
 It is assumed that the ansible commands are run from the boot node (normally master1) which holds the cluster configuration files from the
 initial installation. The configuration files are typically held in `/opt/ibm/cluster`. Adjust commands accordingly if your installation used a different directory.
 
