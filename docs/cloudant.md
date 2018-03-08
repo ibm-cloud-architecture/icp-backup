@@ -9,35 +9,6 @@ There are 2 databases holding the ICP metadata:
 
 In this page, we'll describe how to back up and restore the Cloudant local db in IBM Cloud Private.
 
-Before we back up the Cloudant database, let's insert some data, to ensure they are recovered properly.
-
-## Load data into Cloudant
-
-To load data into Cloudant, we will register a new Helm repository.
-
-Run the following steps in the ICP UI:
-
-* On the menu, click *Manage -> Helm Repositories*:
-
-![repositories](cloudant/Repositories.png)
-
-* Click *Add repository*:
-
-![add_repo](cloudant/AddRepo.png)
-
-* In the dialog, type the following information:
-
-1. *Name*: backup_repo
-2. *URL*: https://kubernetes-charts.storage.googleapis.com
-
-![backup_repo](cloudant/BackupRepo.png)
-
-* click *Add*
-
-You will see the new repository in the list of repositories:
-
-![repos](cloudant/NewRepositories.png)
-
 ## Back up the Cloudant Database
 
 In an ICP HA environment, Cloudant DB runs in a cluster that spread across multiple ICP master nodes. The most reliable approach is to use the [Cloudant DB backup and restore facility](https://developer.ibm.com/clouddataservices/2016/03/22/simple-couchdb-and-cloudant-backup/).
@@ -188,14 +159,41 @@ Keep the backup file in a safe place, you will need it to store in a DR or new s
 
 ## Simulate a loss of the ICP Cloudant database
 
-Now let's simulate a loss of the Docker Registry. To do so, just delete the files under `/opt/ibm/cfc/cloudant` from every master nodes:
- 
+Now let's simulate a loss of the Docker Registry. Follow these steps to delete some data:
+
+* Install Couch CLI:
+
 ```
-rm -rf /opt/ibm/cfc/cloudant
+npm install couchdb-cli -g
 ```
 
-It's recommended to use some automated script such as ansible scripts to delete all directories at the same time.
-Here is an [sample ansible script to delete the folders](../scripts/move_cloundant_on_masters.yml)
+* Delete a Couch database:
+
+```
+coucher database -c http://admin:orange@localhost:$PORT -a delete -d platform-db
+```
+
+You will see the following output:
+
+```
+root@us-master1:~/backup# coucher database -c http://admin:orange@localhost:$PORT -a delete -d platform-db
+Creating database: platform-db
+the database:platform-db is exist..., will delete it...
+```
+
+Then recreate the database (now empty):
+
+```
+coucher database -c http://admin:orange@localhost:$PORT -a create -d platform-db
+```
+
+You will see the following message:
+
+```
+root@us-master1:~/backup# coucher database -c http://admin:orange@localhost:$PORT -a create -d platform-db
+Creating database: platform-db
+database:platform-db does not exists. will create it....
+```
 
 
 ## Restore your ICP Cloudant database
@@ -251,8 +249,29 @@ export PORT=<Node port associated with Pod port 5984>
 * Move the backup source file to the target Environment
 
 * Restore the database:
+
 ```
 couchrestore --url "http://admin:orange@localhost:$PORT" --db "platform-db" < platform-db-backup.txt
+```
+
+You will see the following output:
+
+```
+root@us-master1:~/backup# couchrestore --url "http://admin:orange@localhost:$PORT" --db "platform-db" < platform-db-backup.txt
+================================================================================
+Performing restore on http://****:****@localhost:32330/platform-db using configuration:
+{
+  "bufferSize": 500,
+  "parallelism": 5
+}
+================================================================================
+  couchbackup:restore restored 35 +0ms
+  couchbackup:restore finished { total: 35 } +7ms
+```
+
+Similarly, run the following command:
+
+```
 couchrestore --url "http://admin:orange@localhost:$PORT" --db "security-data-db" < security-data-backup.txt
 ```
 
