@@ -11,15 +11,15 @@ The backup and restore scripts can be considered in two groups:
 
 The following table describes briefly the purpose of each installation and configuration script.
 
-|  **Script Name**                    |       **Comments**                                   |
-|-------------------------------------|------------------------------------------------------|
-|`01_clone-backup-git-repo.sh`          |Clone the git repot with the ICP backup artifacts and documentation.  |
-|`02_install_kubectl.sh`                |Install kubectl which is needed to interact with the ICP kubernetes cluster |
-|`03_installNode9x.sh`                  |Node is the implementation language of the Cloudant back and restore utilities used by the scripts.   |
-|`04_installLatestNPM.sh`               |NPM is the node package manager and is needed to install various node packages.   |
-|`05_installCloudantUtils.sh`           |Installs couchbackup (and restore) as well as couchdb-cli   |
-|`06_install-jq.sh`                     |jq is used to parse JSON when interacting with the kubernetes cluster   |
-|`07_ICPclientConfig.sh`                |Used to configure a current kubernetes context with admin access to the cluster.<br/>Sets the preferred namespace to kube-system.<br/>*NOTE:* Before running `07_ICPclientConfig.sh`, you need to paste in the `kubectl` client configuration commands that configure the context.<br/>The client configuration commands are available from the ICP console in the user icon drop-down menu.   |
+|  **Script Name**             |       **Comments**                                   |
+|------------------------------|------------------------------------------------------|
+|`01_install-kubectl.sh`       |Install kubectl which is needed to interact with the ICP kubernetes cluster |
+|`02_install-node9x.sh`        |Node is the implementation language of the Cloudant back and restore utilities used by the scripts.   |
+|`03_install-npm-latest.sh`    |NPM is the node package manager and is needed to install various node packages. |
+|`05_install-cloudant-utils.sh` |Installs couchbackup (and restore) as well as couchdb-cli   |
+|`06_install-jq.sh`             |jq is used to parse JSON when interacting with the kubernetes cluster   |
+|`icp-client-config.sh`         |Used to configure a current kubernetes context with admin access to the cluster.<br/>Sets the preferred namespace to kube-system.<br/>*NOTE:* Before running `icp-client-config.sh`, you need to edit it and paste in the `kubectl` client configuration commands that configure the context.<br/>The client configuration commands are available from the ICP console in the user icon drop-down menu.<br/>Depending on the scenario, it may be convenient to cut-and-paste the client configuration kubectl commands directly into a shell window on the backup and restore staging server.<br/>`icp-client-config.sh` also sets the preferred namespace to `kube-system`.|
+|`set-namespace-kube-system.sh`   |Used to set the preferred namespace to kube-system.<br/> The scripts that use kubectl commands all include a `--namespace=kube-system` option, so it is not necessary to use this script.  However, it is convenient for the user if kubectl commands need to be run from the shell prompt for any reason.<br/>The only namespace of interest in the context of Cloudant backup and restore is kube-system.|
 
 ## Backup and restore utility scripts
 - The backup and restore utility scripts have pre-reqs that the following software is installed on the machine running the scripts:
