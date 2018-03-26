@@ -48,9 +48,10 @@ getCloudantPassword () {
 
 getCloudantNodePort () {
 
-  local port=$(kubectl --namespace=kube-system get svc cloudantdb-ext -o json | jq '.["spec"]["ports"][1]["nodePort"]')
+#  local port=$(kubectl --namespace=kube-system get svc cloudantdb-ext -o json | jq '.["spec"]["ports"][1]["nodePort"]')
 
-  echo $port
+#  echo $port
+   echo 5984
 }
 
 
@@ -59,11 +60,13 @@ getCloudantURL () {
   # $1 is Cloudant DB host name or IP address.
   # defaults to localhost
 
-  local dbhost=$1
+#  local dbhost=$1
 
-  if [ -z "$dbhost" ]; then 
-    dbhost=localhost
-  fi
+ # if [ -z "$dbhost" ]; then 
+ #  dbhost=localhost
+ # fi
+
+  dbhost=icp-ds
 
   local password=$(getCloudantPassword)
   local port=$(getCloudantNodePort)

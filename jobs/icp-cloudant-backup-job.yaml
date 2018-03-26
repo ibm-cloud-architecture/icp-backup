@@ -8,6 +8,6 @@ spec:
       containers:
       - name: icp-cloudant-backup
         image: "patrocinio/icp-backup-cloudant-backup:latest"
-        command: ["/cloudant-backup.sh", "--help"]
+        command: ["/cloudant-backup.sh"]
       restartPolicy: Never
   backoffLimit: 3
