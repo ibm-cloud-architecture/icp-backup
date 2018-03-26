@@ -1,0 +1,17 @@
+
+# Values defined here are referenced in deployment.yaml, service.yaml, ingress.yaml
+
+replicaCount: 1
+image:
+  pullPolicy: IfNotPresent
+  tag: latest
+  repository: mycluster.icp:8500/default/ibmcase/icp-cloudant-backup
+
+# We want to icp-cloudant-backup to run on one of the master nodes.
+# When running on a master node, localhost can be used for the Cloudant dbhost.
+# TBD - How to specify a nodeSelector for a Kubernetes Job template.
+nodeSelector:
+  role: master
+
+job:
+  backoffLimit: 3
