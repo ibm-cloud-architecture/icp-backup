@@ -9,8 +9,8 @@
 # The following source code is sample code created by IBM Corporation.
 # This sample code is provided to you solely for the purpose of assisting you
 # in the  use of  the product. The code is provided 'AS IS', without warranty or
-# condition of any kind. IBM shall not be liable for any damages arising out of 
-# your use of the sample code, even if IBM has been advised of the possibility 
+# condition of any kind. IBM shall not be liable for any damages arising out of
+# your use of the sample code, even if IBM has been advised of the possibility
 # of such damages.
 #
 # DESCRIPTION:
@@ -20,7 +20,7 @@
 # Pre-reqs:
 #    kubectl is needed to interact with the ICP cluster.
 #    jq is needed to do JSON parsing.
-#   
+#
 #
 # INPUTS:
 #   1. Host name (FQDN) or IP address of the Cloudant DB server. (optional)
@@ -47,12 +47,12 @@ function usage {
   echo " - and -- are accepted as keyword argument indicators"
   echo ""
   echo "Sample invocations:"
-  echo "  ./get-database-names.sh --dbhost master01.xxx.yyy" 
+  echo "  ./get-database-names.sh --dbhost master01.xxx.yyy"
   echo ""
 }
 
 # import helper functions
-. ./helperFunctions.sh
+. ./helper-functions.sh
 
 # MAIN
 
@@ -98,5 +98,3 @@ else
   info $LINENO "ICP Cloudant database names:"
   echo "\"$allDBs\""
 fi
-
-

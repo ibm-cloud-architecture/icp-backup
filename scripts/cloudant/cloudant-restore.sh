@@ -9,15 +9,15 @@
 # The following source code is sample code created by IBM Corporation.
 # This sample code is provided to you solely for the purpose of assisting you
 # in the  use of  the product. The code is provided 'AS IS', without warranty or
-# condition of any kind. IBM shall not be liable for any damages arising out of 
-# your use of the sample code, even if IBM has been advised of the possibility 
+# condition of any kind. IBM shall not be liable for any damages arising out of
+# your use of the sample code, even if IBM has been advised of the possibility
 # of such damages.
 #
 # DESCRIPTION:
-#   Restore ICP Cloudant databases 
+#   Restore ICP Cloudant databases
 #
 # INPUTS:
-#   1. Path to backup directory. (required) 
+#   1. Path to backup directory. (required)
 #      Each backup gets its own directory with a timestamp.
 #
 #   2. Host name (FQDN) or IP address of the Cloudant DB server. (optional)
@@ -27,7 +27,7 @@
 #   3. Database names of databases to restore. (optional)
 #      Defaults to all the databases that were backed up by the cloudant-backup.sh
 #      script.  The dbnames.sh filein the backup directory is sourced.
-#      The variable BACKED_UP_DBNAMES holds the list of database backups in the 
+#      The variable BACKED_UP_DBNAMES holds the list of database backups in the
 #      given backup directory.
 #
 # Assumptions:
@@ -39,8 +39,8 @@
 #      this script is being run on the Cloudant DB server host as
 #      localhost is used in the Cloudant DB URL.
 #
-#   4. The backup was created with the cloudant-backup.sh script that 
-#      is included in the git repo with this script.  The content of 
+#   4. The backup was created with the cloudant-backup.sh script that
+#      is included in the git repo with this script.  The content of
 #      the backup directory is expected to have a dbnames.sh script
 #      that holds a list of databases that were backed up.
 #
@@ -75,7 +75,7 @@ function usage {
 
 
 # import helper functions
-. ./helperFunctions.sh
+. ./helper-functions.sh
 
 # MAIN
 
@@ -107,18 +107,18 @@ while (( $# > 0 )); do
                 ;;
 
     -dbhost|--dbhost)  dbhost=$2; shift
-                ;;                                                          
+                ;;
 
     -dbnames|--dbnames)  dbnames=$2; shift
-                ;;                                                          
+                ;;
 
-    * ) usage; info $LINENO "ERROR: Unknown option: $arg in command line."  
+    * ) usage; info $LINENO "ERROR: Unknown option: $arg in command line."
                exit 1
-                ;;                          
-  esac              
+                ;;
+  esac
   # shift to next key-value pair
-  shift             
-done  
+  shift
+done
 
 
 if [ -z "$backupHome" ]; then
@@ -171,7 +171,7 @@ if [ -z "$port" ]; then
   exit 1
 fi
 
-if [ -z "$password" ]; then 
+if [ -z "$password" ]; then
   info $LINENO "ERROR: password must not be empty. Check getCloudantPassword helper function."
   exit 2
 fi
@@ -183,10 +183,10 @@ if [ -z "$dbnames" ]; then
   # in the backup directory.
   dbnames="$BACKED_UP_DBNAMES"
 else
-  # Make sure all user provided dbnames are valid for the given backup directory. 
+  # Make sure all user provided dbnames are valid for the given backup directory.
   ERROR=""
   for name in $dbnames; do
-    isvalid=$(echo "$BACKED_UP_DBNAMES" | grep $name) 
+    isvalid=$(echo "$BACKED_UP_DBNAMES" | grep $name)
     if [ -z "$isvalid" ]; then
       info $LINENO "ERROR: The backup directory does not hold a backup for database name: \"$name\""
       ERROR="true"
@@ -194,8 +194,8 @@ else
   done
   if [ -n "$ERROR" ]; then
     info $LINENO "Valid ICP Cloudant database names:"
-    echo "\"$ALL_DBS\"" 
-    info $LINENO "Backup directory: $backupDir holds backups for databases:" 
+    echo "\"$ALL_DBS\""
+    info $LINENO "Backup directory: $backupDir holds backups for databases:"
     echo "\"$BACKED_UP_DBNAMES\""
     exit 6
   fi
@@ -209,7 +209,7 @@ currentDBs=$(getCloudantDatabaseNames $dbhost)
 
 # Make sure the database exists in the ICP Cloudant instance.
 for name in $dbnames; do
-  dbexists=$(echo "$currentDBs" | grep $name) 
+  dbexists=$(echo "$currentDBs" | grep $name)
   if [ -z "$dbexists" ]; then
     info $LINENO "Creating database: $name on Cloudant instance host: $dbhost"
     createDatabase $dbhost $name
@@ -227,5 +227,3 @@ for dbname in $dbnames; do
     couchrestore --url "http://admin:$password@$dbhost:$port" --db $dbname < "$backupFilePath"
   fi
 done
-
-
