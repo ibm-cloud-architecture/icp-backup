@@ -8,8 +8,8 @@
 # The following source code is sample code created by IBM Corporation.
 # This sample code is provided to you solely for the purpose of assisting you
 # in the  use of  the product. The code is provided 'AS IS', without warranty or
-# condition of any kind. IBM shall not be liable for any damages arising out of 
-# your use of the sample code, even if IBM has been advised of the possibility 
+# condition of any kind. IBM shall not be liable for any damages arising out of
+# your use of the sample code, even if IBM has been advised of the possibility
 # of such damages.
 #
 # DESCRIPTION:
@@ -17,10 +17,10 @@
 #   Write the backups to a timestamped directory in a given backups home directory.
 #
 # INPUTS:
-#   1. Path to backup directories home. (optional) 
+#   1. Path to backup directories home. (optional)
 #      Each backup gets its own directory with a timestamp.
-#      The timestamped backup directory for this backup will be created 
-#      in the given backup directories home.  
+#      The timestamped backup directory for this backup will be created
+#      in the given backup directories home.
 #      The backup directories home defaults to "backups" in the current
 #      working directory.
 #
@@ -69,9 +69,10 @@ function usage {
 
 
 # import helper functions
-. ./helperFunctions.sh
+. ./helper-functions.sh
 
-# MAIN
+############ "Main" starts here
+SCRIPT=${0##*/}
 
 backupHome=""
 dbhost=""
@@ -97,19 +98,19 @@ while (( $# > 0 )); do
                 ;;
 
     -dbhost|--dbhost)  dbhost=$2; shift
-                ;;                                                          
+                ;;
 
     -dbnames|--dbnames)  dbnames=$2; shift
-                ;;                                                          
+                ;;
 
-    * ) usage; 
-        info $LINENO "ERROR: Unknown option: $arg in command line."  
+    * ) usage;
+        info $LINENO "ERROR: Unknown option: $arg in command line."
         exit 1
-        ;;                          
-  esac              
+        ;;
+  esac
   # shift to next key-value pair
-  shift             
-done  
+  shift
+done
 
 
 if [ -z "$backupHome" ]; then
@@ -131,7 +132,7 @@ if [ -z "$port" ]; then
   exit 1
 fi
 
-if [ -z "$password" ]; then 
+if [ -z "$password" ]; then
   info $LINENO "ERROR: password must not be empty. Check getCloudantPassword helper function."
   exit 2
 fi
@@ -151,7 +152,7 @@ else
   # make sure all user provided dbnames are valid
   ERROR=""
   for name in $dbnames; do
-    isvalid=$(echo "$allDBs" | grep $name) 
+    isvalid=$(echo "$allDBs" | grep $name)
     if [ -z "$isvalid" ]; then
       info $LINENO "ERROR: The name: \"$name\" is not a valid ICP Cloudant database name."
       ERROR="true"
@@ -170,7 +171,7 @@ ts=$(date +%Y-%m-%d-%H-%M-%S)
 backupDir="${backupHome}/icp-cloudant-backup-$ts"
 
 mkdir -p $backupDir
-if [ "$?" != "0" ]; then 
+if [ "$?" != "0" ]; then
   info $LINENO "ERROR: Failed to create: $backupDir"
   exit 4
 fi
@@ -183,5 +184,3 @@ exportDBnames "$dbnames" "$backupDir"
 for dbname in $dbnames; do
   couchbackup --url "http://admin:$password@$dbhost:$port" --log "$backupDir/$dbname-backup.log" --db $dbname > "$backupDir/$dbname-backup.json"
 done
-
-

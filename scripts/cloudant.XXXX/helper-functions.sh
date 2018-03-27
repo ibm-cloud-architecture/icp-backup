@@ -8,8 +8,8 @@
 # The following source code is sample code created by IBM Corporation.
 # This sample code is provided to you solely for the purpose of assisting you
 # in the  use of  the product. The code is provided 'AS IS', without warranty or
-# condition of any kind. IBM shall not be liable for any damages arising out of 
-# your use of the sample code, even if IBM has been advised of the possibility 
+# condition of any kind. IBM shall not be liable for any damages arising out of
+# your use of the sample code, even if IBM has been advised of the possibility
 # of such damages.
 
 # DESCRIPTION:
@@ -18,7 +18,7 @@
 
 function info {
   local lineno=$1; shift
-  ts=$(date +[%Y/%m/%d-%T])
+  local ts=$(date +[%Y/%m/%d-%T])
   echo "$ts $SCRIPT($lineno) $*"
 }
 
@@ -37,7 +37,7 @@ getCloudantPassword () {
 
   # Parse out the part of the secret with the data we are interested in.
   cloudant_password=$(echo $secret | jq '.["data"]["cloudant_password"]')
-  
+
   # Strip leading and trailing double quotes
   cloudant_password=${cloudant_password#\"}
   cloudant_password=${cloudant_password%\"}
@@ -61,7 +61,7 @@ getCloudantURL () {
 
   local dbhost=$1
 
-  if [ -z "$dbhost" ]; then 
+  if [ -z "$dbhost" ]; then
     dbhost=localhost
   fi
 
@@ -72,7 +72,7 @@ getCloudantURL () {
 
 }
 
-# The _all_dbs REST API returns a JSON list: 
+# The _all_dbs REST API returns a JSON list:
 #   [ "_users", "helm_repos", "metrics", "metrics_app", "platform-db", "security-data", "stats", "tgz_files_icp" ]
 #   The actual output from jq has newlines after each item in the list.
 #   Also note the leading and trailing white space character of the string inside the brackets which needs to
@@ -99,24 +99,24 @@ exportCloudantDatabaseNames () {
   # $2 is the path to directory where databases names are to be exported
   local dbhost=$1
   local destDir=$2
-  
+
   if [ -z "$destDir" ]; then
     destDir="$PWD"
   fi
 
   local allDBs=$(getCloudantDatabaseNames $dbhost)
   local dest="$destDir/dbnames.sh"
-  
+
   if [ -f "$dest" ]; then
     # dbnames.sh already exists
     exported=$(grep ALL_DBS "$dest")
     if [ -z "$exported" ]; then
       # ALL_DBS not written in dbnames.sh, append it
-      echo "export ALL_DBS=\"$allDBs\"" >> "$dest" 
+      echo "export ALL_DBS=\"$allDBs\"" >> "$dest"
     fi
   else
     # Create dbnames.sh and write ALL_DBS to it
-    echo "export ALL_DBS=\"$allDBs\"" > "$dest" 
+    echo "export ALL_DBS=\"$allDBs\"" > "$dest"
     chmod +x "$dest"
   fi
 }
@@ -143,11 +143,11 @@ exportDBnames () {
     exported=$(grep -q BACKED_UP_DBNAMES "$dest")
     if [ -z "$exported" ]; then
       # BACKED_UP_DBNAMES not written in dbnames.sh, append it
-      echo "export BACKED_UP_DBNAMES=\"$dbnames\"" >> "$dest" 
+      echo "export BACKED_UP_DBNAMES=\"$dbnames\"" >> "$dest"
     fi
   else
     # Create dbnames.sh and write BACKED_UP_DBNAMES to it
-    echo "export BACKED_UP_DBNAMES=\"$dbnames\"" > "$dest" 
+    echo "export BACKED_UP_DBNAMES=\"$dbnames\"" > "$dest"
     chmod +x "$dest"
   fi
 }
@@ -162,37 +162,36 @@ makeBackupFilePath () {
 }
 
 createDatabase () {
-  # Create a Cloudant database 
+  # Create a Cloudant database
   # $1 is the host name of the Cloudant DB instance
   #    localhost is valid if the script is run on the instanct host.
   # $2 is the database name
   #
-  # Both parameters are required. 
+  # Both parameters are required.
 
   local dbhost=$1
   local dbname=$2
 
   local cloudantURL=$(getCloudantURL $dbhost)
-  
-  coucher database -c $cloudantURL -a create -d $dbname 
+
+  coucher database -c $cloudantURL -a create -d $dbname
 
 }
 
 
 deleteDatabase () {
-  # Delete a Cloudant database 
+  # Delete a Cloudant database
   # $1 is the host name of the Cloudant DB instance
   #    localhost is valid if the script is run on the instanct host.
   # $2 is the database name
   #
-  # Both parameters are required. 
+  # Both parameters are required.
 
   local dbhost=$1
   local dbname=$2
 
   local cloudantURL=$(getCloudantURL $dbhost)
-  
-  coucher database -c $cloudantURL -a delete -d $dbname 
+
+  coucher database -c $cloudantURL -a delete -d $dbname
 
 }
-
