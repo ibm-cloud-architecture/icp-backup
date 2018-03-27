@@ -45,7 +45,7 @@ function usage {
   echo "Usage: cloudant-backup.sh [options]"
   echo "   --dbhost <hostname|ip_address>   - (optional) Host name or IP address of the Cloudant DB service provider"
   echo "                                      For example, one of the ICP master nodes."
-  echo "                                      Defaults to localhost."
+  echo "                                      Defaults to cloudant."
   echo ""
   echo "   --backup-home <path>             - (optional) Full path to a backups home directory."
   echo "                                      Defaults to backups in current working directory."
@@ -118,7 +118,7 @@ fi
 info $LINENO "Backup directory will be created in: $backupHome"
 
 if [ -z "$dbhost" ]; then
-  dbhost=localhost
+  dbhost=cloudantdb
 fi
 info $LINENO "Cloudant DB host: $dbhost"
 
@@ -137,6 +137,10 @@ if [ -z "$password" ]; then
 fi
 
 info $LINENO "Cloudant NodePort: $port"
+
+cloudantURL=$(getCloudantURL $dbhost)
+
+allDBs=$(curl --silent $cloudantURL/_all_dbs)
 
 allDBs=$(getCloudantDatabaseNames $dbhost)
 
