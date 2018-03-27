@@ -48,7 +48,7 @@ function usage {
   echo "                                      Defaults to cloudant."
   echo ""
   echo "   --backup-home <path>             - (optional) Full path to a backups home directory."
-  echo "                                      Defaults to backups in current working directory."
+  echo "                                      Defaults to directory /backup."
   echo ""
   echo "   --dbnames <name_list>            - (optional) Space separated list of database names to back up."
   echo "                                      The dbnames list needs to be quoted."
@@ -113,7 +113,7 @@ done
 
 
 if [ -z "$backupHome" ]; then
-  backupHome="${PWD}/backups"
+  backupHome="/backup"
 fi
 info $LINENO "Backup directory will be created in: $backupHome"
 
