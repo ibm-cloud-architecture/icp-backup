@@ -49,7 +49,7 @@ function usage {
   echo "Usage: cloudant-restore.sh [options]"
   echo "   --dbhost <hostname|ip_address>   - (optional) Host name or IP address of the Cloudant DB service provider"
   echo "                                      For example, one of the ICP master nodes."
-  echo "                                      Defaults to localhost."
+  echo "                                      Defaults to cloudantdb."
   echo ""
   echo "   --backup-dir <path>              - (required) Path to a backup directory."
   echo "                                      A valid backup directory will have a time stamp in its name and"
@@ -158,7 +158,7 @@ fi
 
 
 if [ -z "$dbhost" ]; then
-  dbhost=localhost
+  dbhost=cloudantdb
 fi
 info $LINENO "Cloudant DB host: $dbhost"
 

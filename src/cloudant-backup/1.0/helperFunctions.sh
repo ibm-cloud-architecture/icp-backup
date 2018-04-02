@@ -22,7 +22,7 @@ function info {
   echo "$ts $SCRIPT($lineno) $*"
 }
 
-getCloudantPassword () {
+getCloudantPasswordUsingSecret () {
   ### Get the cloudant password from kube secret
   raw_secret=$(kubectl get secret cloudant-credentials --namespace=kube-system -o json | jq '.["metadata"]["annotations"]["kubectl.kubernetes.io/last-applied-configuration"]')
 
@@ -45,6 +45,10 @@ getCloudantPassword () {
   echo $cloudant_password | base64 -d
 }
 
+getCloudantPassword () {
+  echo "orange"
+}
+
 
 getCloudantNodePort () {
 
@@ -58,15 +62,13 @@ getCloudantNodePort () {
 getCloudantURL () {
   # Construct the cloudant URL echo it back to caller.
   # $1 is Cloudant DB host name or IP address.
-  # defaults to localhost
+  # defaults to cloudant
 
-#  local dbhost=$1
+  local dbhost=$1
 
- # if [ -z "$dbhost" ]; then 
- #  dbhost=localhost
- # fi
-
-  dbhost=icp-ds
+  if [ -z "$dbhost" ]; then 
+   dbhost=cloudant
+  fi
 
   local password=$(getCloudantPassword)
   local port=$(getCloudantNodePort)

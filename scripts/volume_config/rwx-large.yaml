@@ -1,0 +1,13 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: FILE_SYSTEM
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Recycle
+  nfs:
+    path: "FILE_PATH/FILE_SYSTEM"
+    server: FILE_SERVER

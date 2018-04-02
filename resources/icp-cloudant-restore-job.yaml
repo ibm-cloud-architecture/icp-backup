@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: icp-cloudant-restore
+spec:
+  template:
+    spec:
+      volumes:
+      - name: cloudant-backup
+        persistentVolumeClaim:
+          claimName: cloudant-backup
+      containers:
+      - name: icp-cloudant-restore
+        image: "patrocinio/icp-backup-cloudant-backup:latest"
+        command: ["/cloudant-restore.sh", "--backup-dir", "/backup/icp-cloudant-backup-2018-03-27-08-31-18"]
+        volumeMounts:
+          - mountPath: "/backup"
+            name: cloudant-backup
+      restartPolicy: Never
+  backoffLimit: 3

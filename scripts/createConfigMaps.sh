@@ -13,7 +13,7 @@ do
 	KEY=k-$COUNTER
 	VALUE=$(date)
 	echo "Adding key: $KEY, value: $VALUE"
-	kubectl create configmap $CONFIG_MAP --from-literal=$KEY=$VALUE
+	kubectl create configmap $CONFIG_MAP --from-literal="$KEY=$VALUE"
 
 	let COUNTER=(COUNTER+1)%RANGE
 
