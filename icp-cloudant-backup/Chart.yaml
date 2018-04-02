@@ -1,7 +1,7 @@
 apiVersion: v1
 description: ICP cloudant backup utility deployed as a Kubernetes Job running on a master node in an ICP cluster.
 name: icp-cloudant-backup
-version: 0.1.0
+version: 0.3.0
 keywords:
   - ICP
   - Cloudant
@@ -9,4 +9,4 @@ keywords:
 maintainers: # (optional)
   - name: "Peter Van Sickel"
     email: "pvs@us.ibm.com"
-appVersion: 0.1.0
+appVersion: 0.3.0
