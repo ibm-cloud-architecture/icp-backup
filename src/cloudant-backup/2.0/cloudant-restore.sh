@@ -179,7 +179,7 @@ if [ -z "$BACKED_UP_DBNAMES" ]; then
   info $LINENO "dbnames.sh content:"
   cat "$dbnamesScriptPath"
   exit 4
-else:
+else
   info $LINENO "ICP Cloudant database backups for: \"$BACKED_UP_DBNAMES\" in: $backupDir"
 fi
 
