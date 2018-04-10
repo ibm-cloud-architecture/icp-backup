@@ -13,21 +13,41 @@
 # your use of the sample code, even if IBM has been advised of the possibility
 # of such damages.
 #
+# Description
+#   Build a helm and image PPA.
+#
+#  ASSUMPTIONS:
+#   1. It is assumed that the helm chart has been archived and gzipped into a file with
+#      the name of the chart, e.g. icp-cloudant-backup with a suffix of -chart-VERSION.tgz
+#      where VERSION is Semver 2.0 version number, e.g., 0.1.0.  (Semver seems to be the
+#      proper version numbering scheme to use here.)
+#
+#   2. Likewise the image file with a docker image is assumed to be named with the name
+#      of the chart, e.g., icp-cloudant-backup with a suffix of -image-VERSION.tgz
+#      The following command can be used to get an image in the locak registry into
+#      a tgz file:
+#         docker save ibmcase/icp-cloudant-backup | gzip > icp-cloudant-backup-image-0.1.0.tgz
+#
 function usage {
   echo ""
   echo "Usage: build-ppa-archive.sh [options]"
   echo "   --chart-name <chart_name>             - (required) The name of the chart."
-  echo "   --chart-version <chart_version>       - (required) The version number of the chart."
+  echo "   --chart-version <chart_version>       - (required) The version number of the chart file."
   echo "   --chart-home <chart_path>             - (required) The path to the home directory for charts."
   echo ""
   echo "   --image-name <image_name>             - (required) The name of the image."
-  echo "   --image-tag <image_tag>               - (required) The tag of the image."
+  echo "   --image-version <image_version>       - (required) The version number of the image file."
+  echo "   --image-tag <image_tag>               - (optional) The tag of the image.  Defaults to latest."
   echo "   --image-home <image_path>             - (required) The path to the home directory for images."
   echo ""
   echo "   --help|-h                             - emit this usage information"
   echo ""
-  echo "Sample invocations:"
-  echo "  ./build-ppa-archive.sh"
+  echo "Sample invocations (all on one line):"
+  echo "In the sample below the chart and image .tgz files are in the user's home directory."
+  echo "  ./build-ppa-archive.sh --chart-name icp-cloudant-backup "
+  echo "                         --chart-version 0.1.0 --chart-home ~/  "
+  echo "                         --image-name icp-cloudant-backup "
+  echo "                         --image-version 0.1.0 --image-home ~/"
   echo ""
 }
 
@@ -41,6 +61,7 @@ function info {
 SCRIPT=${0##*/}
 
 image_name=""
+image_version=""
 image_tag=""
 image_home=""
 chart_name=""

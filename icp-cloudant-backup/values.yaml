@@ -1,15 +1,53 @@
+# See article on Kubernetes cronjob: https://chrisshort.net/kubernetes-cron-jobs/
+# For cronjob schedule string just search the Internet for the schdule
+# you are interested in, e.g,. cron job every 12 hours
+# NOTE: Kubernetes uses UTC time for scheduling.
 
-# Values defined here are referenced in deployment.yaml, service.yaml, ingress.yaml
+# Args common to backup, cleanup, etc
+common:
+  args:
+    dbhost: cloudantdb.kube-system
+    backupHome: /data/backups
+
+backup:
+  # cloudant-backup.sh command args
+  args:
+    exclude: "metrics metrics_app"
+  cronjob:
+    # Every noon, midnight (UTC): "0 */12 * * *"
+    # Every hour: "0 * * * *"
+    schedule: "0 * * * *"
+
+cleanup:
+  args:
+    # Use retain to specify the number of backups to retain.
+    retain: 3
+  cronjob:
+    # Every noon, midnight (UTC)
+    schedule: "0 */12 * * *"
+
+
+## Persist data to a persistent volume
+persistence:
+  # If the PVC has already been created then set pvc_exists to true.
+  # TODO: Investigate way to inject detection of the PVC at deployment.
+  pvc_exists: true
+  enabled: true
+  ## If defined, volume.beta.kubernetes.io/storage-class: <storageClass>
+  ## Default: volume.alpha.kubernetes.io/storage-class: default
+  ##
+  storageClass:
+  accessMode: ReadWriteOnce
+  size: 5Gi
 
 replicaCount: 1
+
 image:
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: latest
   repository: mycluster.icp:8500/default/ibmcase/icp-cloudant-backup
 
-# We want to icp-cloudant-backup to run on one of the master nodes.
-# When running on a master node, localhost can be used for the Cloudant dbhost.
-# TBD - How to specify a nodeSelector for a Kubernetes Job template.
+# TBD: Run icp-cloudant-backup on one of the master nodes.
 nodeSelector:
   role: master
 

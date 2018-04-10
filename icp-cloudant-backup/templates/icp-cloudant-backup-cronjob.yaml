@@ -1,0 +1,33 @@
+# Note: v2alpha1 also appears to be available.
+# Good article on Kubernetes cronjob: https://chrisshort.net/kubernetes-cron-jobs/
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: icp-cloudant-backup
+spec:
+  # Note: Kubernetes uses UTC time for scheduling.
+  schedule: {{ .Values.backup.cronjob.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: icp-cloudant-backup
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+            command: [ "/cloudant-backup.sh" ]
+            args: [ "--dbhost", "{{ .Values.common.args.dbhost }}",
+                    "--backup-home", "{{ .Values.common.args.backupHome }}",
+                    "--exclude", "{{ .Values.backup.args.exclude }}" ]
+            volumeMounts:
+            - name: data
+              mountPath: {{ .Values.common.args.backupHome }}
+          volumes:
+          - name: data
+            {{- if .Values.persistence.enabled }}
+            persistentVolumeClaim:
+              claimName: icp-cloudant-backup-pvc
+            {{- else }}
+            emptyDir: {}
+            {{- end -}}

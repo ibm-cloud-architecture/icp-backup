@@ -1,0 +1,29 @@
+# Note: v2alpha1 also appears to be available.
+# Restore the ICP Cloudant databases
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: icp-cloudant-restore
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: icp-cloudant-restore
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        command: [ "/cloudant-restore.sh" ]
+        args: [ "--dbhost", "{{ .Values.common.args.dbhost }}",
+                "--backup-home", "{{ .Values.common.args.backupHome }}"
+              ]
+        volumeMounts:
+        - name: data
+          mountPath: {{ .Values.common.args.backupHome }}
+      volumes:
+      - name: data
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: icp-cloudant-backup-pvc
+        {{- else }}
+        emptyDir: {}
+        {{- end -}}
