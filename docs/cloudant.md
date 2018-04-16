@@ -181,3 +181,9 @@ kubectl logs -f <pod-id>
 where `<pod-id>` is the ID displayed in the last line of the previous output.
 
 ## Validate the data is back
+
+Follow these steps to validate the data has been restored:
+
+* Log on to the ICP UI
+* Click *Manage &rarr; Helm Repositories*
+* Ensure the repository *test_cloudant* is back

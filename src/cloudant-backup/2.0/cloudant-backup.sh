@@ -65,8 +65,8 @@ function usage {
   echo "                                      For example, one of the ICP master nodes."
   echo "                                      Defaults to cloudantdb.kube-system."
   echo ""
-  echo "   --backup-home <path>             - (optional) Full path to a backups home directory."
-  echo "                                      Defaults to backups in current working directory."
+  echo "   --backup-home <path>             - (optional) Full path to a backup home directory."
+  echo "                                      Defaults to backup in current working directory."
   echo ""
   echo "   --dbnames <name_list>            - (optional) Space separated list of database names to back up."
   echo "                                      The dbnames list needs to be quoted."
@@ -81,7 +81,7 @@ function usage {
   echo ""
   echo "Sample invocations:"
   echo "  ./cloudant-backup.sh"
-  echo "  ./cloudant-backup.sh --dbhost master01.xxx.yyy --backup-home /backups"
+  echo "  ./cloudant-backup.sh --dbhost master01.xxx.yyy --backup-home /backup"
   echo ""
   echo " User is assumed to have write permission on backup home directory."
   echo " User is assumed to have a current kubernetes context with admin credentials."
@@ -140,7 +140,7 @@ done
 
 
 if [ -z "$backupHome" ]; then
-  backupHome="${PWD}/backups"
+  backupHome="${PWD}/backup"
 fi
 info $LINENO "Backup directory will be created in: $backupHome"
 
