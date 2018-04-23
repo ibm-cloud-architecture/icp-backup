@@ -14,7 +14,7 @@ spec:
         image: "patrocinio/icp-backup-cloudant-backup:latest"
         command: ["/cloudant-backup.sh"]
         volumeMounts:
-          - mountPath: "/backup"
+          - mountPath: "/backups"
             name: cloudant-backup
       restartPolicy: Never
   backoffLimit: 3

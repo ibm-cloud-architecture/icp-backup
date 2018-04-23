@@ -140,7 +140,7 @@ done
 
 
 if [ -z "$backupHome" ]; then
-  backupHome="${PWD}/backup"
+  backupHome="${PWD}/backups"
 fi
 info $LINENO "Backup directory will be created in: $backupHome"
 

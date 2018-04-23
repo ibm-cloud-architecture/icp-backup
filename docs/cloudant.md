@@ -11,7 +11,7 @@ There are 8 databases in ICP:
 * platform-db
 * security-data
 * stats
-* tgz_files_icp
+* tgz\_files\_icp
 
 In this page, we'll describe how to back up and restore the Cloudant local db in IBM Cloud Private.
 
@@ -179,6 +179,26 @@ kubectl logs -f <pod-id>
 ```
 
 where `<pod-id>` is the ID displayed in the last line of the previous output.
+
+### Restoring a single Cloudant database
+
+Cloudant contains 8 databases, and some of them can have a huge amount of data. If you want to restore one single Cloudant database, you can run the following comment:
+
+```
+./restoreCloudant.sh <db-name>
+```
+
+where `<db-name>` is one of the following databases:
+
+* _users
+* helm_repos
+* metrics
+* metrics_app
+* platform-db
+* security-data
+* stats
+* tgz\_files\_icp
+
 
 ## Validate the data is back
 

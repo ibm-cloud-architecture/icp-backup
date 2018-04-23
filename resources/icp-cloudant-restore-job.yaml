@@ -12,9 +12,13 @@ spec:
       containers:
       - name: icp-cloudant-restore
         image: "patrocinio/icp-backup-cloudant-backup:latest"
-        command: ["/cloudant-restore.sh", "--backup-dir", "/backup/icp-cloudant-backup-2018-04-16-12-31-15"]
+        env:
+        - name: DBNAME
+          value: "xxx"
+        command: ["/cloudant-restore.sh"]
+        args: ["--dbnames", "$(DBNAME)"]
         volumeMounts:
-          - mountPath: "/backup"
+          - mountPath: "/backups"
             name: cloudant-backup
       restartPolicy: Never
   backoffLimit: 3
