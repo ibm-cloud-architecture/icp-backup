@@ -14,7 +14,10 @@
 # of such damages.
 #
 # DESCRIPTION:
-#   Restore ICP Cloudant databases
+#   Restore ICP MariaDB databases
+#
+#   For more information from MySQL documentation see:
+#   https://dev.mysql.com/doc/refman/8.0/en/backup-and-recovery.html
 #
 # INPUTS:
 #   1. Backup home directory.  (optional)
@@ -25,12 +28,14 @@
 #      Each backup gets its own directory with a timestamp.
 #
 #   3. Kubernetes service host name, host name (FQDN) or IP address of the
-#      Cloudant DB server. (optional) Defaults to cloudantdb.kube-system.
-#      If running outside a container, this needs to be one of the ICP master
-#      nodes where the Cloudant database service is running.
+#      MariaDB server. (optional) Defaults to mariadb.kube-system.
+#      If running outside of a container, this needs to be one of the ICP
+#      master nodes where the MariaDB database service is running. If this
+#      script is running at a host command line on a master node, then localhost
+#      needs to be provided for the --dbhost argument value.
 #
 #   4. Database names of databases to restore. (optional)
-#      Defaults to all the databases that were backed up by the cloudant-backup.sh
+#      Defaults to all the databases that were backed up by the mariadb-backup.sh
 #      script.  The dbnames.sh file in the backup directory is sourced.
 #      The variable BACKED_UP_DBNAMES holds the list of database backups in the
 #      given backup directory.
@@ -38,10 +43,8 @@
 # Pre-reqs:
 #    1. bash is needed for various scripting conventions
 #         Experiments with Ash in Alpine showed that bash is needed.
-#    2. nodejs, npm are required by the helper-functions.
-#    3. kubectl is required by the helper-functions.
-#    4. curl is required by the helper-functions
-#    5. couchrestore is required to do the restore.
+#    2. kubectl is required by the helper-functions.
+#    3. mysql CLI client is required to do the restore.
 #
 #
 # Assumptions:
@@ -52,23 +55,24 @@
 #
 #   2. User has read permission for the backups directory home.
 #
-#   3. If a Cloudant DB server host name is not provided it is assumed
+#   3. If a MariaDB server host name is not provided it is assumed
 #      this script is being run in the context of a Kubernetes pod and the
-#      cloudantdb.kube-system host is used.  If this script is running at
+#      mariadb.kube-system host is used.  If this script is running at
 #      a host command line on a master node, then localhost needs to be
 #      provided for the --dbhost argument value.
 #
-#   4. The backup was created with the cloudant-backup.sh script that
+#   4. The backup was created with the mariadb-backup.sh script that
 #      is included in the git repo with this script.  The content of
 #      the backup directory is expected to have a dbnames.sh script
 #      that holds a list of databases that were backed up.
 #
 function usage {
   echo ""
-  echo "Usage: cloudant-restore.sh [options]"
-  echo "   --dbhost <hostname|ip_address>   - (optional) Host name or IP address of the ICP Cloudant DB service provider"
-  echo "                                      For example, one of the ICP master nodes."
-  echo "                                      Defaults to cloudantdb.kube-system."
+  echo "Usage: mariadb-restore.sh [options]"
+  echo "   --dbhost <hostname|ip_address>   - (optional) Service name, host name or IP address of the"
+  echo "                                      ICP MariaDB service provider. For example, one of the"
+  echo "                                      ICP master nodes."
+  echo "                                      Defaults to mariadb.kube-system."
   echo ""
   echo "   --backup-home <path>             - (optional) Full path to a backups home directory."
   echo "                                      Defaults to backups in current working directory."
@@ -88,8 +92,8 @@ function usage {
   echo " - and -- are accepted as keyword argument indicators"
   echo ""
   echo "Sample invocations:"
-  echo "  ./cloudant-restore.sh --backup-dir ./backups/icp-cloudant-backup-2018-03-10-21-08-41"
-  echo "  ./cloudant-restore.sh --dbhost master01.xxx.yyy --backup-home ./backups/icp-cloudant-backup-2018-03-10-21-08-41"
+  echo "  ./mariadb-restore.sh --backup-home /data/backups"
+  echo "  ./mariadb-restore.sh --dbhost master01.xxx.yyy --backup-dir ./backups/icp-mariadb-backup-2018-03-10-21-08-41"
   echo ""
   echo " User is assumed to have read permission on backup home directory."
   echo " User is assumed to have a valid kubernetes context with admin credentials."
@@ -148,26 +152,31 @@ done
 
 
 if [ -z "$backupHome" ]; then
-  backupHome="${PWD}/backups"
+  backupHome="${PWD%/}/backups"
 fi
 
 if [ -z "$backupDir" ]; then
-  info $LINENO "Most recent backup directory in $backupHome will be used for the Cloudant database restore."
-  backupDirName=$( ls -rt "${backupHome}" | grep icp-cloudant-backup | tail -1 )
-  backupDir="${backupHome}/${backupDirName}"
+  info $LINENO "Most recent backup directory in $backupHome will be used for the MariaDB database restore."
+  backupDirName=$( ls -rt "${backupHome}" | grep icp-mariadb-backup | tail -1 )
+  if [ -z "$backupDirName" ]; then
+    info $LINENO "ERROR: There are no directories in $backupHome with icp-mariadb-backup in the directory name."
+    exit 2
+  fi
+  # strip potential trailing slash from backupHome
+  backupDir="${backupHome%/}/${backupDirName}"
 fi
 
 if [ ! -d "$backupDir" ]; then
   info $LINENO "ERROR: The backup directory does not exist or is not a directory: $backupDir"
-  exit 2
+  exit 3
 fi
 
 info $LINENO "Backup directory path: $backupDir"
 
-dbnamesScriptPath="$backupDir/dbnames.sh"
+dbnamesScriptPath="${backupDir%/}/dbnames.sh"
 if [ ! -f "$dbnamesScriptPath" ]; then
-  info $LINENO "ERROR: The backup directory is missing the dbnames.sh script and is invalid: $backupDir"
-  exit 3
+  info $LINENO "ERROR: The backup directory, $backupDir, is missing the dbnames.sh script and is invalid."
+  exit 4
 fi
 
 source "$dbnamesScriptPath"
@@ -178,18 +187,15 @@ if [ -z "$BACKED_UP_DBNAMES" ]; then
   info $LINENO "Backup directory: $backupDir"
   info $LINENO "dbnames.sh content:"
   cat "$dbnamesScriptPath"
-  exit 4
+  exit 5
 else
-  info $LINENO "ICP Cloudant database backups for: \"$BACKED_UP_DBNAMES\" in: $backupDir"
+  info $LINENO "ICP MariaDB database backups for: \"$BACKED_UP_DBNAMES\" in: $backupDir"
 fi
 
 if [ -z "$dbhost" ]; then
-  dbhost=cloudantdb.kube-system
+  dbhost=mariadb.kube-system
 fi
-info $LINENO "Cloudant DB host: $dbhost"
-
-cloudantURL=$(getCloudantURL $dbhost)
-info $LINENO "Using Cloudant database URL: ${cloudantURL}"
+info $LINENO "MariaDB host: $dbhost"
 
 if [ -z "$dbnames" ]; then
   # If dbnames was not provided on commmand line then restore all that have a backup
@@ -206,7 +212,7 @@ else
     fi
   done
   if [ -n "$ERROR" ]; then
-    info $LINENO "Valid ICP Cloudant database names:"
+    info $LINENO "Valid ICP MariaDB database names:"
     echo "\"$ALL_DBS\""
     info $LINENO "Backup directory: $backupDir holds backups for databases:"
     echo "\"$BACKED_UP_DBNAMES\""
@@ -217,27 +223,47 @@ fi
 info $LINENO "Databases to be restored: $dbnames"
 info $LINENO "Backups will be restored from: $backupDir"
 
-# In a restore scenario the Cloudant database may not be defined.
-currentDBs=$(getCloudantDatabaseNames $dbhost)
+mariadb_user=$(getMariaDBUser)
+if [ -z "$mariadb_user" ]; then
+  info $LINENO "ERROR: Failed to get MariaDB user.  Check getMariaDBUser helper function."
+  exit 7
+fi
+info $LINENO "MariaDB user: $mariadb_user"
 
-# Make sure the database exists in the ICP Cloudant instance.
-for name in $dbnames; do
-  dbexists=$(echo "$currentDBs" | grep $name)
-  if [ -z "$dbexists" ]; then
-    info $LINENO "Creating database: $name on Cloudant instance host: $dbhost"
-    createDatabase $dbhost $name
-  else
-    info $LINENO "Database: $name already exists on Cloudant instance host: $dbhost"
-  fi
-done
+mariadb_password=$(getMariaDBPassword)
+if [ -z "$mariadb_password" ]; then
+  info $LINENO "ERROR: Failed to get MariaDB password.  Check the getMariaDBPassword helper function."
+  exit 8
+fi
 
-
+existing_dbnames=$(getDatabaseNames $dbhost)
+# For mariadb backups created using mysqldump all the needed info to recreate
+# the database is in the back-up sql file, with the execption of the database
+# creation itself.  Before doing the restore the database must exist.
 for dbname in $dbnames; do
   backupFilePath=$(makeBackupFilePath $backupDir $dbname)
   if [ ! -f "$backupFilePath" ]; then
     info $LINENO "ERROR: Backup file: $backupFilePath does not exist for database: $dbname"
   else
-    couchrestore --url "${cloudantURL}" --db $dbname < "$backupFilePath"
+    if ! $(member "$dbname" "$existing_dbnames"); then
+      info $LINENO "Database $dbname does not currently exist in the MariaDB instance, creating $dbname..."
+      mysql --host=$dbhost --user=$mariadb_user --password=$mariadb_password -e "create database $dbname"
+      rc=$?
+      if [ "$rc" != "0" ]; then
+        info $LINENO "ERROR: Failed to create database $dbname"
+        continue
+      else
+        info $LINENO "Database $dbname created."
+      fi
+    fi
+    info $LINENO "Restoring $dbname from $backupFilePath..."
+    mysql --host=$dbhost --database=$dbname --user=$mariadb_user --password=$mariadb_password < "$backupFilePath"
+    rc=$?
+    if [ "$rc" != "0" ]; then
+      info $LINENO "ERROR: Restore FAILED for $dbname. Returned status of: $rc."
+    else
+      info $LINENO "$dbname restore completed."
+    fi
   fi
 done
 

@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: icp-mariadb-restore
+spec:
+  template:
+    spec:
+      volumes:
+      - name: mariadb-restore
+        persistentVolumeClaim:
+          claimName: mariadb-backup-pvc
+      containers:
+      - name: icp-mariadb-restore
+        image: "mycluster.icp:8500/default/ibmcase/icp-mariadb-backup:latest"
+        command: ["/mariadb-restore.sh", "--backup-home", "/data/backups"]
+        volumeMounts:
+          - mountPath: "/data/backups"
+            name: mariadb-backup
+      restartPolicy: Never
+  backoffLimit: 3

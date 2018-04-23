@@ -21,10 +21,10 @@ spec:
                     "--backup-home", "{{ .Values.common.args.backupHome }}",
                     "--exclude", "{{ .Values.backup.args.exclude }}" ]
             volumeMounts:
-            - name: data
+            - name: icp-cloudant-backup
               mountPath: {{ .Values.common.args.backupHome }}
           volumes:
-          - name: data
+          - name: icp-cloudant-backup
             {{- if .Values.persistence.enabled }}
             persistentVolumeClaim:
               claimName: icp-cloudant-backup-pvc
