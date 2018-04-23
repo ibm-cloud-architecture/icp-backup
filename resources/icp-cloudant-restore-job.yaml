@@ -14,7 +14,10 @@ spec:
         image: "patrocinio/icp-backup-cloudant-backup:latest"
         env:
         - name: DBNAME
-          value: "xxx"
+          valueFrom:
+            configMapKeyRef:
+              name: cloudant-dbs
+              key: dbnames
         command: ["/cloudant-restore.sh"]
         args: ["--dbnames", "$(DBNAME)"]
         volumeMounts:
