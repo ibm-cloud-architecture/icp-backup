@@ -6,13 +6,13 @@ In this scenario, we will describe how to back up and restore specific ICP compo
 
 [Back up and restore Docker Registry](registry.md)
 
-[Back up and restore ICP metadata (Cloudant)](cloudant.md)
+[Back up and restore Cloudant](cloudant.md)
 
 These components must be backed up in the following order:
 
 * etcd
 * Docker Registry
-* cloudant 
+* Cloudant 
 
 
 They need to be restored in the reverse order
