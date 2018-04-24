@@ -8,11 +8,13 @@ In this scenario, we will describe how to back up and restore specific ICP compo
 
 [Back up and restore Cloudant](cloudant.md)
 
+[Back up and restore MariaDB](maridb.md)
+
 These components must be backed up in the following order:
 
 * etcd
 * Docker Registry
-* Cloudant 
+* Cloudant
 
 
 They need to be restored in the reverse order

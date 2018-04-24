@@ -1,0 +1,56 @@
+---
+# Description:
+#   Create an archive of the /var/lib/mysql directory
+#   on the master nodes.
+#
+#   Stop docker on the master nodes.
+#   Create the archive of the mariadb working directory
+#   Start docker on the master nodes.
+#
+#   The archive is put in /tmp/mariadb
+#   It is assumed there is sufficient space in /tmp to hold the mariadb archive.
+#   The archive is typically less that 5 MB.
+#
+# INPUTS:
+#   vars:
+#     master_nodes - a string that defines the master nodes
+#                    master_nodes can be the name of a group in the inventory.
+#                    master_nodes can also be a regular expression that matches
+#                    the master node names (and only them) in the inventory.
+#
+#     You can define the vars on the ansible-playbook command line using --extra-vars.
+#     Or define vars in your hosts inventory or any of the other ways to define
+#     Ansible variables.
+#     The --inventory option can be used to provide a path to an inventory file
+#     on the ansible-playbook command line.
+#
+# The tasks where root is needed use the "become" option.
+#
+# Sample invocation:
+#   ansible-playbook archive_mariadb_on_master_nodes.yml --extra-vars "master_nodes=master* 
+#
+#
+
+- hosts: "{{ master_nodes }}"
+
+  tasks:
+    - name: Stop docker
+      service: name=docker state=stopped
+      become: True
+
+    - name: Create mariadb-backup directory in tmp
+      file:
+        path: /tmp/mariadb/backups
+        state: directory
+
+    - name: archive mariadb database working directory
+      archive:
+        path: /var/lib/mysql
+        dest: /tmp/mariadb/backups/mariadb-backup.tgz
+
+    - name: Start docker
+      service: name=docker state=started
+      become: True
+
+
+...

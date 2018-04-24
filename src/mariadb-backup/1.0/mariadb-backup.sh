@@ -28,7 +28,7 @@
 #      working directory.
 #
 #   2. Kubernetes service host name, host name (FQDN) or IP address of the
-#      Cloudant DB server. (optional) Defaults to mariadb.kube-system.
+#      MariaDB DB server. (optional) Defaults to mariadb.kube-system.
 #      If running outside of a container, this needs to be one of the ICP master
 #      nodes where the mariadb database service is running.
 #
@@ -74,7 +74,7 @@ function usage {
   echo ""
   echo "   --dbnames <name_list>            - (optional) Space separated list of database names to back up."
   echo "                                      The dbnames list needs to be quoted."
-  echo "                                      Defaults to all databases defined in the Cloudant instance."
+  echo "                                      Defaults to all databases defined in the MariaDB instance."
   echo ""
   echo "   --exclude <name_list>            - (optional) Space separated list of database names to exclude"
   echo "                                      from the backup.  The name list needs to be quoted."
