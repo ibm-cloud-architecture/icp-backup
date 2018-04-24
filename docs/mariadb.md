@@ -23,7 +23,7 @@ If you want to work with the ICP MariaDB instance from the command line you will
 [client]
 protocol=tcp
 ```
-*WARNING:* Only expose the MariaDB instance via `tcp` for as long as needed to work with the instance.  When you are finished working with the instance, remove the above lines from the config file.  Otherwise, you are leaving the database open potential undesired access.
+*WARNING:* Only expose the MariaDB instance via `tcp` for as long as needed to work with the instance.  When you are finished working with the instance, remove the above lines from the config file.  Otherwise, you are leaving the database open to potentially undesired access.
 
 # Installing MariaDB client on RHEL
 

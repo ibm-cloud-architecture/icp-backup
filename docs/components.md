@@ -8,7 +8,7 @@ In this scenario, we will describe how to back up and restore specific ICP compo
 
 [Back up and restore Cloudant](cloudant.md)
 
-[Back up and restore MariaDB](maridb.md)
+[Back up and restore MariaDB](mariadb.md)
 
 These components must be backed up in the following order:
 
