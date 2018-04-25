@@ -39,7 +39,7 @@ function usage {
   echo ""
   echo "Sample invocations:"
   echo "  ./externalize-cloudantdb-service.sh"
-  echo "  ./externalize-cloudantdb-service.sh --yaml-path ../resources/cloudant-db-node-port.yaml"
+  echo "  ./externalize-cloudantdb-service.sh --yaml-path ../../resources/cloudant-db-node-port.yaml"
   echo ""
 }
 
