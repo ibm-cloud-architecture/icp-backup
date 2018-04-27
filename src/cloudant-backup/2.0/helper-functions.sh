@@ -144,12 +144,16 @@ getCloudantURL () {
   # User is assumed to be admin.
 
   local dbhost=$1
-  local port=$(getCloudantHTTPPort)
+  local port=$2
   local user=admin
   local password=$(getCloudantPassword)
 
   if [ -z "$dbhost" ]; then
     dbhost=cloudantdb.kube-system
+  fi
+
+  if [ -z "$port" ]; then
+    port=$(getCloudantHTTPPort)
   fi
 
   echo "http://$user:$password@$dbhost:$port"
