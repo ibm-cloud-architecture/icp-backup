@@ -21,31 +21,6 @@ Then you need to define the environment variable endpoint to point to a master n
 export endpoint=<master-node-ip>
 ```
 
-Then run the following scripts
-
-```
-. ./etcd.sh
-```
-
-You can validate the setup by running the following command:
-
-```
-etcdctl3
-```
-
-You should see the following message:
-
-```
-root@icp-master:~/icp-backup/scripts# etcdctl3
-NAME:
-	etcdctl - A simple command line client for etcd3.
-
-USAGE:
-	etcdctl
-
-...
-```
-
 Follow these steps to back up and restore your etcd:
 
 * [Create some workloads in ICP](etcd_workload.md)
