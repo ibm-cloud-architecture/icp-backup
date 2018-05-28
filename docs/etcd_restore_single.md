@@ -51,6 +51,7 @@ root@eduardo-icp:~/icp-backup/scripts# ./restoreEtcd.sh etcd.2018.05.28-17.47.38
 Restore snapshot etcd.2018.05.28-17.47.38.db
 2018-05-28 18:02:25.656909 I | mvcc: restore compact to 1659028
 2018-05-28 18:02:25.675531 I | etcdserver/membership: added member 5bf018a50841e942 [https://169.61.93.24:2380] to cluster 62f981c5dba29d15```
+```
 
 The command above loads the data to directory `/var/lib/etcd/restored`.
 
