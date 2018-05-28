@@ -38,28 +38,19 @@ rm -rf /var/lib/etcd
 
 #### Load snapshot data
 
-Assuming you have the file `/tmp/etcd.db` in your environment, containing a backup of your etcd, run the following procedure to restore etcd:
+Assuming you have the file `/tmp/etcd.2018.05.28-17.47.38.db` in your environment, containing a backup of your etcd, run the following procedure to restore etcd:
 
 ```
-etcdctl3 snapshot restore /data/etcd.db \
---name=etcd0 --data-dir=/var/lib/etcd/restored \
---initial-advertise-peer-urls=https://${endpoint}:2380 \
---initial-cluster-token=etcd-cluster-1 \
---initial-cluster=etcd0=https://${endpoint}:2380
+./restoreEtcd.sh etcd.2018.05.28-17.47.38.db
 ```
 
 You should see the following response:
 
 ```
-root@icp-master:/etc/cfc/pods# etcdctl3 snapshot restore /data/etcd.db \
-> --name=etcd0 --data-dir=/var/lib/etcd/restored \
-> --initial-advertise-peer-urls=https://${endpoint}:2380 \
-> --initial-cluster-token=etcd-cluster-1 \
-> --initial-cluster=etcd0=https://${endpoint}:2380
-2018-02-28 19:10:55.602343 I | mvcc: restore compact to 171204
-2018-02-28 19:10:55.614782 I | etcdserver/membership: added member 13d542895c43caf2 [https://10.0.0.1:2380] to cluster f2f6638141c39fb3
-
-```
+root@eduardo-icp:~/icp-backup/scripts# ./restoreEtcd.sh etcd.2018.05.28-17.47.38.db
+Restore snapshot etcd.2018.05.28-17.47.38.db
+2018-05-28 18:02:25.656909 I | mvcc: restore compact to 1659028
+2018-05-28 18:02:25.675531 I | etcdserver/membership: added member 5bf018a50841e942 [https://169.61.93.24:2380] to cluster 62f981c5dba29d15```
 
 The command above loads the data to directory `/var/lib/etcd/restored`.
 
