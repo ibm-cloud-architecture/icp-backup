@@ -5,17 +5,18 @@ Now we are ready to back up the etcd data.
 Now run the following command:
 
 ```
-etcdctl3 snapshot save /data/etcd.db
+./backupEtcd.sh
 ```
 
 You should see the following output:
 
 ```
-root@icp-master:~/icp-backup/scripts# etcdctl3 snapshot save /data/etcd.db
-2018-02-28 18:32:55.691445 I | warning: ignoring ServerName for user-provided CA for backwards compatibility is deprecated
-Snapshot saved at /data/etcd.db
+root@eduardo-icp:~/icp-backup/scripts# ./backupEtcd.sh
+Current Time : 2018.05.28-17.47.38
+Back up to the following file:  /data/etcd.2018.05.28-17.47.38.db
+Snapshot saved at /data/etcd.2018.05.28-17.47.38.db
 ```
 
-Now the file is available in the master node `/tmp` directory
+This command generates a file in the master node `/tmp` directory, using the current timestamp.
 
-Now copy this file (`/tmp/etcd.db`) to a safe location, outside this node.
+Now copy this file (`/tmp/etcd.2018.05.28-17.47.38.db`) to a safe location, outside this node.
