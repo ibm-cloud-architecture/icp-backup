@@ -76,10 +76,10 @@ ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=
 
 ## Copy etcd snapshot to all master nodes
 
-Assuming you have the file `/tmp/etcd.db` in your environment, containing a backup of your etcd, run the following procedure to copy the file to all master nodes:
+Assuming you have the file `/tmp/etcd.2018.05.28-17.47.38.db` in your environment, containing a backup of your etcd, run the following procedure to copy the file to all master nodes:
 
 ```
-ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m copy -a "src=/tmp/etcd.db dest=/tmp/snapshot.db"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m copy -a "src=/tmp/etcd.2018.05.28-17.47.38.db dest=/tmp/snapshot.db"
 ```
 
 ## Restore the snapshot on all master nodes
