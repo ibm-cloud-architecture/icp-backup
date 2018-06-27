@@ -1,26 +1,14 @@
-# Back up and restore the Docker Registry in IBM Cloud Private
+# Backup and Restore the Docker Registry in IBM Cloud Private
 
-In this page, we'll describe how to back up and restore the Docker Registry in IBM Cloud Private.
-
-
-Before we back up the Docker images stored in the Registry, let's load an image there.
-
-## Configure authentication for the Docker CLI
-
-Follow the steps at [Configuring authentication for the Docker CLI](https://www.ibm.com/support/knowledgecenter/SSBS6K_2.1.0/manage_images/configuring_docker_cli.html) to configure authentication.
+This topic covers backup and restore of the Docker Registry in IBM Cloud Private.  If you do not have any images loaded in your registry, it may be useful to load one for testing purposes:
 
 ## Add an image in the ICP Docker Registry
 
-Run the following commands in any machine that has access to the ICP master node and has Docker engine installed.
+First follow the steps at [Configuring authentication for the Docker CLI](https://www.ibm.com/support/knowledgecenter/SSBS6K_2.1.0/manage_images/configuring_docker_cli.html) to configure authentication.  Run the following commands in any machine that has access to the ICP master node and has Docker engine installed.
 
-First, pull an nginx image:
+Next, pull an nginx image:  `docker pull nginx`
 
-```
-docker pull nginx
-```
-
-You will see the following output:
-
+You should see the output resembling the following:
 ```text
 patro:icp-backup edu$ docker pull nginx
 Using default tag: latest
@@ -32,28 +20,13 @@ Digest: sha256:4771d09578c7c6a65299e110b3ee1c0a2592f5ea2618d23e4ffe7a4cab1ce5de
 Status: Downloaded newer image for nginx:latest
 ```
 
-Now log in to your Docker Registry:
+Log in to your Docker Registry:  `docker login mycluster.icp:8500`
 
-```
-docker login mycluster.icp:8500
-```
+Provide the admin user and password when prompted.  Tag the image, by running the following command: `docker tag nginx mycluster.icp:8500/default/nginx`
 
-You need to provide the admin user and password.
+Finally, push the image to the Docker Registry:  `docker push mycluster.icp:8500/default/nginx`
 
-Now, let's tag the image, by running the following command:
-
-```
-docker tag nginx mycluster.icp:8500/default/nginx
-```
-
-Finally, let's push the image to the Docker Registry:
-
-```
-docker push mycluster.icp:8500/default/nginx
-```
-
-You will see the following output:
-
+You will see output similar to the following:
 ```
 patro:.docker edu$ docker push mycluster.icp:8500/default/nginx
 The push refers to repository [mycluster.icp:8500/default/nginx]
@@ -63,41 +36,28 @@ e89b70d28795: Pushed
 latest: digest: sha256:600bff7fb36d7992512f8c07abd50aac08db8f17c94e3c83e47d53435a1a6f7c size: 948
 ```
 
+Finally, open your browser to:  `https://$MASTER_ID:8443/console/images`
 
-Now if you open your browser to:
-
-```
-https://$MASTER_ID:8443/console/images
-```
-
-You will see the nginx image listed there.
+You will see the nginx image listed.
 
 ## Back up the ICP Docker Registry
 
-Now that we have images loaded into the ICP Docker Registry, we can back up the directory, by running the following command in one of the master nodes:
+Now that there are images loaded into the ICP Docker Registry, lets perform a backup by running the following command from one of the master nodes:
 
 ```
 cd /var/lib/registry
 tar czvf /tmp/icp_dr.tar.gz .
 ```
 
-Now move the file `/tmp/icp_dr.tar.gz` to a safe location, outside the master node
+Now move the file `/tmp/icp_dr.tar.gz` to a safe location, outside the master node.
 
-## Simulate a loss of the ICP Docker Registry
+> If this process is automated, which is a good idea, move this file to a location that is included in either your shared storage or in-host backup routine.
 
-Now let's simulate a loss of the Docker Registry. To do, just delete the files under /var/lib/registry:
+## Simulating a Loss to the Docker Registry
 
-```
-rm -rf /var/lib/registry/*
-```
+In the case that you do not have a actual recovery situation, you can simulate a loss to the Docker Registry.  To do so simply delete the files under /var/lib/registry:  `rm -rf /var/lib/registry/*`
 
-Now if you open your browser to: 
-
-```
-https://$MASTER_ID:8443/console/images
-```
-
-You will see an empty response.
+If you open your browser to:  `https://$MASTER_ID:8443/console/images`  You will see an empty response.
 
 ### Restore your ICP Docker Registry
 
@@ -108,11 +68,10 @@ cd /var/lib/registry
 tar xvzf /tmp/icp_dr.tar.gz
 ```
 
-Now run the following command to recycle the image manager Pod:
+Next, run the following command to recycle the image manager Pod:
 
 ```
 kubectl delete pod image-manager-0 -n kube-system
 ```
 
-Now if you re-open the URL `https://$MASTER_ID:8443/console/images`, you should see the images restored.
-
+If you re-open the URL `https://$MASTER_ID:8443/console/images`, you should see the images restored.

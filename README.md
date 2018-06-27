@@ -1,50 +1,64 @@
-# How to back up (and restore) an IBM Cloud Private environment
+# Backup and Restore (BUR) of IBM Cloud Private
 
 ## Introduction
 
-In this document, we will describe how to back up and restore your IBM Cloud Private (ICP) environment
+In this document, we will describe how to back up and restore your IBM Cloud Private (ICP) environment.  Understanding some of the components and processes have changed, we have begun to denote versions in the effected steps.  Currently we are providing backup process, procedures and suggestions for all nodes except Vulnerability Advisor (check back will be adding soon)..
 
 
-## General guidance on ICP backup
+### General Guidance on ICP Backup
 
-ICP and Kubernetes rely heavily on etcd and cloudant to store the configuration. According to the etcd documentation (https://coreos.com/etcd/docs/latest/v2/admin_guide.html#disaster-recovery)
+Consider the backup and recovery procedures to best meet your resilience requirements.  Each implementation will have its own specific requirements and thus potentially its own procedures and best-practices.  Possible recovery / failure scenarios should be rehearsed in your non-production environment to verify their validity.  Each backup and recovery (BUR) solution will rely upon the enterprise for specific procedures and tooling to manage backups of the cluster nodes, their filesystems and persistent storage solution(s).
+
+When developing your plan, along side the standard infrastructure failure scenarios, consider the following possible node failures:  Boot, Worker, Proxy, Management, Master in single Master topology, Master in multi-Master topology.  Consider failure of your shared storage / persistent storage solution.  Also, consider the possiblity of catastrophic failures such as multiple Masters and the entire cluster potentially including a DR declaration.
+
+Currently, since we do not require any data from **Worker Nodes** and **Proxy Nodes**, and we can simply recreate them from the command line, we **will not create backups of these nodes.**
+### Notes About etcd
+
+ICP and Kubernetes rely heavily on etcd to store the Kubernetes and Calico configurations.  According to the etcd documentation: (https://coreos.com/etcd/docs/latest/v2/admin_guide.html#disaster-recovery)
 
 > A user should avoid restarting an etcd member with a data directory from an out-of-date backup. Using an out-of-date data directory can lead to inconsistency as the member had agreed to store information via raft then re-joins saying it needs that information again. For maximum safety, if an etcd member suffers any sort of data corruption or loss, it must be removed from the cluster. Once removed the member can be re-added with an empty data directory.
 
-So we recommend back up specific ICP components:
+### Notes About ICP Components
+
+In ICP there are several components that help maintain the state of Kubernetes and ICP components.  We have taken care to make special note of each of these component stores:
 
 * etcd
 * Docker Registry
-* Cloudant
+* Audit Logs
+* Cloudant (ICP 2.1.0.2 and before)
+* MongoDB (ICP 2.1.0.3 and after)
 * MariaDB
 * certificates
 
-Based on that, we recommend the following procedure:
+Based upon these components we recommend the following flow:
 
-![flow](images/ICP_Backup.jpg)
+![flow](images/icp-backup-flow.png)
 
+> It is important to note that you will leverage the same best-practices you use elsewhere in your datacenter.  The special procedures for backup of ICP compents are in addition to (and rely upon) these already proven techniques that must br in place.
 
-We will describe two backup procedures:
+## Backup and Recovery:  Breaking it Down
 
-* Back up the entire environment, after the initial solution, so that it can be recreated quickly
+This guide segments the backup process into two logical super-steps:
 
-* Back up individual ICP components
+* Initial Backup:  Backup of the entire cleanly installed environment post deplployment of the initial solution topology.  This will be used as a basis for certain recovery scenarios.
 
-## Procedures
+* Steady State:  Specialized backup of individual ICP components.
+
+## Cluster Procedures
 
 [Backup and restore the entire environment](docs/entire.md)
 
 [Backup and restore ICP components](docs/components.md)
 
 
-## TBD
+## Managing Persistent Volumes
 
 [Back up and restore the Persistent Volumes](docs/pvs.md)
 
 
-## Back-burner
+## Backlog and Notes
 
-[Backup and restore some ICP nodes](docs/some.md)
+[Procedures on our backlog, participation is invited](docs/some.md)
 
 
 ## Additional information

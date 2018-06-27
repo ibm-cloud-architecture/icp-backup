@@ -1,13 +1,7 @@
 # Create some workloads in ICP
+If you are performing these steps in a lab or non-production environment it may be useful to give your etcd some personality before running this test.  WE can do that by loading some data in the form of ConfigMaps.
 
-Before we back up etcd in ICP, let's load some data.
-You can deploy any application or even create some Kubernetes config maps.
-
-The following script creates and deletes config maps continuously:
-
-```
-./createConfigMaps.sh
-```
+This script creates and deletes config maps continuously:  `./createConfigMaps.sh`
 
 If you leave this script running for a while, you will see many ConfigMaps created:
 
@@ -34,3 +28,4 @@ snake-97        1         9m
 snake-98        1         9m
 snake-99        1         9m
 ```
+Ok ... **kill it** and move on to the backup.
