@@ -1,8 +1,8 @@
-# Back up and restore the MariaDB database in IBM Cloud Private
+# Back up and Restore the MariaDB database in IBM Cloud Private
 
-This document describes the ICP MariaDB backup and restore procedures implemented by the content in this repository.
+**Please note that restoring the MariaDB is highly optional and not recommended as part of our best-practices.  This topic is purely here for informational purposes.  Use this information to build procedures to backup and restore other MariaDB instances in your enterprise.**
 
-The artifacts for the ICP MariaDB backup and restore procedures are available by cloning this Git repository: https://github.com/ibm-cloud-architecture/icp-backup
+This document describes the ICP MariaDB backup and restore procedures implemented by the content in this repository.  The artifacts for the ICP MariaDB backup and restore procedures are available by cloning this Git repository: https://github.com/ibm-cloud-architecture/icp-backup
 
 # Introduction to MariaDB in ICP
 
@@ -70,7 +70,7 @@ mysql --user=$mariadb_user --password=$mariadb_password
 
 Add the `--host=<master_node>` option if you want to access the MariaDB instance on the given `<master_node>` remotely.
 
-*NOTE:* For testing and exploratory purposes we changed the MariaDB instance configuration to allow the `mysql` client to use `tcp` as described earlier in this document.  
+*NOTE:* For testing and exploratory purposes we changed the MariaDB instance configuration to allow the `mysql` client to use `tcp` as described earlier in this document.
 
 Reference: [mysql - The MySQl Command-Line Tool](https://dev.mysql.com/doc/refman/8.0/en/mysql.html)
 

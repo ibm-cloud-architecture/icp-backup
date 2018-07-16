@@ -1,7 +1,6 @@
-# Back up and restore the Cloudant database in IBM Cloud Private
+# Backup and Restore the Cloudant Database in IBM Cloud Private (2.1.0.2 and Before)
 
-IBM Cloudant local is used by IBM Cloud Private(ICP) to store information for OIDC service, metering service (IBM® Cloud Product Insights), Helm repository server, and Helm API server.
-It runs as a kubernetes Statefulset and mount to local host path. The StatefulSet is exposed as HeadLess service as “cloudantdb”.
+IBM Cloudant local datastore is used by IBM Cloud Private(ICP) to store information for OIDC service, metering service (IBM® Cloud Product Insights), Helm repository server, and Helm API server.  It runs as a kubernetes Statefulset and mount to local host path. The StatefulSet is exposed as HeadLess service as “cloudantdb”.
 There are 8 databases in ICP:
 
 * _users
@@ -39,7 +38,7 @@ Run the following procedure to add a new Helm repository to ICP:
 * Copy one of the existing Repositories URL to your buffer
 * Add a new repository
   - name *test_cloudant*
-  - URL: the value copied in the buffer 
+  - URL: the value copied in the buffer
 *  Click Add
 
 You will see the new repository in the list
@@ -71,9 +70,7 @@ persistentvolumeclaim "cloudant-backup" created
 
 ## Back up Cloudant database
 
-Now we can back up the Cloudant database.
-
-Run the following procedure:
+Now we can back up the Cloudant database.  Run the following procedure:
 
 ```
 ./backupCloudant.sh
@@ -120,23 +117,21 @@ where <cloudant-backup-id> is the Pod ID, as shown in the last time of the previ
 2018-03-30T19:04:02.785Z couchbackup:backup Finished - Total document revisions written: 1
 ```
 
-## Simulate a loss 
+## Simulate a loss
 
-Now we are going to simulate a loss in the Cloudant database. 
+Now we are going to simulate a loss in the Cloudant database.
 
 As we added the Helm repository *test_cloudant*, let's remove it, by following these steps in the ICP UI:
 
 * Click *Manage &rarr; Helm Repositories*
 * In the line containing, *test_cloudant*, select the Action menu, and click *Delete*
-* In the confirmation dialog, click *Delete* again 
+* In the confirmation dialog, click *Delete* again
 
 You will see that the *test_cloudant* database disappears from the list.
 
 ## Restore the Cloudant database
 
-Let's now recover the Cloudant database from the backup.
-
-Run the following script to restore the Cloudant database:
+Let's now recover the Cloudant database from the backup.  Run the following script to restore the Cloudant database:
 
 ```
 ./restoreCloudant.sh
@@ -172,23 +167,11 @@ Events:
   4s		4s		1	{job-controller }			Normal		SuccessfulCreate	Created pod: icp-cloudant-restore-lpb4c
 ```
 
-Now, look at the Kubernetes Pod by running the following command:
-
-```
-kubectl logs -f <pod-id>
-```
-
-where `<pod-id>` is the ID displayed in the last line of the previous output.
+Next, look at the Kubernetes Pod by running the following command:  `kubectl logs -f <pod-id>` where `<pod-id>` is the ID displayed in the last line of the previous output.
 
 ### Restoring a single Cloudant database
 
-Cloudant contains 8 databases, and some of them can have a huge amount of data. If you want to restore one single Cloudant database, you can run the following comment:
-
-```
-./restoreCloudant.sh <db-name>
-```
-
-where `<db-name>` is one of the following databases:
+Cloudant contains 8 databases, and some of them can have a huge amount of data. If you want to restore one single Cloudant database, you can run the following comment:   `./restoreCloudant.sh <db-name>` where `<db-name>` is one of the following databases:
 
 * _users
 * helm_repos
