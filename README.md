@@ -34,7 +34,7 @@ Based upon these components we recommend the following flow:
 
 ![flow](images/icp-backup-flow.png)
 
-> It is important to note that you will leverage the same best-practices you use elsewhere in your datacenter.  The special procedures for backup of ICP compents are in addition to (and rely upon) these already proven techniques that must br in place.
+> It is important to note that you will leverage the same best-practices you use elsewhere in your datacenter.  The special procedures for backup of ICP compents are in addition to (and rely upon) these already proven techniques that must be in place.
 
 ## Backup and Recovery:  Breaking it Down
 
