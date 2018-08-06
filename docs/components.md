@@ -8,7 +8,7 @@ The most important (and detailed) step in the In this scenario is performing bac
 
 [Back up and restore Cloudant 2.1.0.2 and earlier clusters only](cloudant.md)
 
-[Back up and restore MongoDB 2.1.0.3 and earlier clusters only](mongodb.md)
+[Back up and restore MongoDB 2.1.0.3 and later clusters only](mongodb.md)
 
 These components must be backed up in the following order:
 
