@@ -7,23 +7,14 @@ There are 8 databases in ICP:
 
 In this topic, we describe how to perform a backup and restore on this MongoDB in IBM Cloud Private.  You may also use these techniques to take a backup on another MongoDB instance running in your cluster. The steps included are as follows:
 
-* (Optional) Deploy a sample MongoDB
 * (Optional) Load data into the sample MongoDB
 * Perform a MongoDB backup
 * (Optional) Simulate data loss
 * Restore a MongoDB database
 * Perform data Validation
 
-### (Optional) Deploy a MongoDB Database with Some Data
+### (Optional) Load data into the sample MongoDB
 
-If you do not want to prove the backup and restore process on your ICP MongoDB instance, we have included this easy process of deploying a sample database for your experimentation.  Deploy a MongoDB (in this example) using the provided Helm chart.
-
-> The assumption is made that you are able to initialize the kubectl and helm command environments so that they are able to communicate with your ICP cluster.  It is also assumed that your Helm repository gives you access to the MongoDB chart.
-
-Run the following command to deploy a MongoDB database to your Kubernetes cluster:
-```helm install -n mongodb stable/mongodb --tls --set mongodbRootPassword=password```
-
-You will see a message stating that the MongoDB Helm chart has been deployed.
 Load some data into this database.  First run the following command to connect:
 ```kubectl run mongodb-mongodb-client --rm --tty -i --image bitnami/mongodb --command -- mongo --host mongodb-mongodb -p password```
 
