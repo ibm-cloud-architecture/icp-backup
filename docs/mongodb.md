@@ -37,10 +37,16 @@ Next, run the following command to retrieve the values:  `db.myCollection.find()
 
 ## Backup MongoDB
 MongoDB provides a tool that we will leverage for backup called **mongodump**.  First, we need to create a Persistent Volume Claim, by running the following command:
-```kubectl apply -f https://raw.githubusercontent.com/patrocinio/mongodb/master/deploy/mongo_pvc.yaml```
+
+```
+kubectl apply -f https://raw.githubusercontent.com/patrocinio/mongodb/master/deploy/mongodump_pvc.yaml
+```
 
 Run the following command to dump the MongoDB database:
-```kubectl apply -f https://raw.githubusercontent.com/patrocinio/mongodb/master/deploy/mongodump_job.yaml```
+
+```
+kubectl apply -f https://raw.githubusercontent.com/patrocinio/mongodb/master/deploy/mongodump_job.yaml
+```
 
 This Kubernetes job will dump the MongoDB databases into the persistent volume created above.  If this is your ICP cluster backup, make certain this PV is being backed up and saved.  You will need the contents to perform a restore at a future date.
 
