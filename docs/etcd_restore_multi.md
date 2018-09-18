@@ -6,7 +6,7 @@ To reduce the effort required we will use ansible where possible to execute comm
 
 Define the following environment variable, according to your installation:  `export CLUSTER_DIR=/opt/ibm/cluster`
 
-## Preprequisites Ansible and jq
+## Prerequisites Ansible and jq
 
 Ensure that Ansible is installed on the boot node:  `which ansible`  If this command returns an empty response, install ansible on this node.
 
