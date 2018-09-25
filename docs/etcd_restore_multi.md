@@ -91,7 +91,7 @@ To setup the etcdctl tool to query the etcd cluster, run the following commands,
 
 Then run the following scripts:  `. ./etcd.sh`
 
-To query the cluster health, run this command:  `etcdctl2 cluster-health`
+To query the cluster health, run this command:  `$etcdctl2 cluster-health`
 
 You should see a response similar to the following:
 
