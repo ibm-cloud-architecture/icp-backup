@@ -8,7 +8,7 @@ To back up and restore etcd, you must be logged into one of the Master Nodes.  C
 git clone https://github.com/ibm-cloud-architecture/icp-backup.git
 cd icp-backup/scripts
 ```
-Next define an environment variable **endpoint** that points to a Master Node:
+Next define an environment variable **endpoint** that points to a node running etcd:
 
 ```
 export endpoint=<master-node-ip>
