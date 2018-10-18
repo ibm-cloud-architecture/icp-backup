@@ -2,7 +2,7 @@
 
 The backup process is the same whether you're running single master or multi-Master configurations of ICP.  In both cases the backup is always taken from a single node, to ensure consistency upon restore.  In the case of restore to a multi-node cluster, any of the nodes may be restored from the same backup.
 
-To back up and restore etcd, you must be logged into one of the Master Nodes.  Clone this GitHub repository to the Master Node, you will use it when performing the steps in this guide.
+To back up and restore etcd, you must be logged into one of the etcd nodes (this will be the master unless you deployed an external etcd cluster).  Clone this GitHub repository to the node running etcd, you will use it when performing the steps in this guide.
 
 ```
 git clone https://github.com/ibm-cloud-architecture/icp-backup.git
@@ -17,7 +17,7 @@ If you are simply testing the backup and restore process it is useful to have da
 
 ## Backup Procedure for etcd
 
-From the Master Node run the following command from the cloned GitHub repository above:
+From the etcd node run the following command from the cloned GitHub repository above:
 
 ```
 ./backupEtcd.sh
