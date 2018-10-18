@@ -11,7 +11,7 @@ cd icp-backup/scripts
 Next define an environment variable **endpoint** that points to a node running etcd:
 
 ```
-export endpoint=<master-node-ip>
+export endpoint=<etcd-node-ip>
 ```
 If you are simply testing the backup and restore process it is useful to have data to verify the validity of your process.  Follow [Create some workloads in ICP](etcd_workload.md) to create a data-trail to follow.
 
