@@ -1,7 +1,9 @@
 # Backup and Restore the MongoDB Database in IBM Cloud Private (2.1.0.3 and Newer)
 
-IBM MongoDB datastore is used by IBM Cloud Private(ICP) to store information for OIDC service, metering service (IBM® Cloud Product Insights), Helm repository server, and Helm API server and more.  It runs as a Kubernetes statefulset **icp-mongodb** on the Master Nodes.  If you inspect your cluster you will the pods in this statefulset named **icp-mongodb-(increment) that each mounts storage to local host path.  The StatefulSet is exposed as NodePort service as “mongodb”.
-There are 8 databases in ICP:
+# THIS PAGE IS STILL UNDER CONTRUCTION. WE WILL UPDATE THESE STEPS SOON
+
+IBM MongoDB datastore is used by IBM Cloud Private(ICP) to store information for OIDC service, metering service (IBM® Cloud Product Insights), Helm repository server, and Helm API server and more.  It runs as a Kubernetes statefulset **icp-mongodb** on the Master Nodes.  If you inspect your cluster you will the pods in this statefulset named **icp-mongodb-(increment)** that each mounts storage to local host path.  The StatefulSet is exposed as NodePort service as “mongodb”.
+
 
 ## Topic Overview
 
