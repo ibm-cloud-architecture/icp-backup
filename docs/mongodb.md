@@ -2,7 +2,7 @@
 
 # THIS PAGE IS STILL UNDER CONTRUCTION. WE WILL UPDATE THESE STEPS SOON
 
-IBM MongoDB datastore is used by IBM Cloud Private(ICP) to store information for OIDC service, metering service (IBM® Cloud Product Insights), Helm repository server, and Helm API server and more.  It runs as a Kubernetes statefulset **icp-mongodb** on the Master Nodes.  If you inspect your cluster you will the pods in this statefulset named **icp-mongodb-(increment)** that each mounts storage to local host path.  The StatefulSet is exposed as NodePort service as “mongodb”.
+IBM MongoDB datastore is used by IBM Cloud Private(ICP) to store information for OIDC service, metering service (IBM® Cloud Product Insights), Helm repository server, and Helm API server and more.  It runs as a Kubernetes statefulset **icp-mongodb** on the Master Nodes.  If you inspect your cluster you will notice the pods in this statefulset named **icp-mongodb-(increment)** that run one per each master and  mount storage to local host path.  The StatefulSet is exposed as a service as “mongodb”. 
 
 
 ## Topic Overview
