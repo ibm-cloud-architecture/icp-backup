@@ -86,7 +86,7 @@ Add the Ark client program (ark) somewhere in your $PATH.
 
 ### Step 4. Configure Ark Setup
 
-Configure your kubectl client to access your IKS deployment. From the Ark root directory, edit the file config/ibm/05-ark-backupstoragelocation.yaml file. Add your COS keys as a Kubernetes Secret named cloud-credentials as shown below. Be sure to update <access_key_id> and <secret_access_key> with the value from your IBM COS service credentials. The remaining changes in the file are in the section showing the BackupStorageLocation resource named default. Configure access to the bucket arkbucket (or whatever you called yours) by editing the spec.objectstore.bucket section of the file. Edit the COS region and s3URL to match your choices. The file should look something like this when done:
+Configure your kubectl client to access your IKS deployment. From the Ark root directory, edit the file config/ibm/05-ark-backupstoragelocation.yaml file. Add your COS keys as a Kubernetes Secret named cloud-credentials as shown below. Be sure to update <access_key_id> and <secret_access_key> with the value from your IBM COS service credentials. The remaining changes in the file are in the section showing the BackupStorageLocation resource named default. Configure access to the bucket arkbucket (or whatever you called yours) by editing the spec.objectstore.bucket section of the file. Edit the COS region and s3URL to match your choices.
 
 ```
 apiVersion: v1
@@ -116,8 +116,9 @@ spec:
     s3Url:  http://s3-api.us-geo.objectstorage.softlayer.net
     region: us-geo
 ```
+The file should look something like this when done.
 
-###Step 5. Login to your ICP cluster
+### Step 5. Login to your ICP cluster
 
 [ICP Client Credentials](./images/ark/icp_client_config.png)
 
@@ -151,35 +152,25 @@ restic-mb9vh 1/1 Running 0 5m
 Note above that the count may vary as there is one Ark pod and a Restic Daemon set (in this case 3 pods, one per worker node).
 
 
-## Step 7. Deploy a sample Application with a Volume to be Backed Up
+## Step 7. Create Namespace, Persistent Volume and Persistent Volume Claim
+
+You can use the ICP admin console to create the Namespace, Persistent Volume and Persistent Volume Claim as below.
+
+
+[ICP create Namespace](./images/ark/icp_create_namespace.png)
+
+Under the Platform, Storage settings create the Persistent Volume and Persistent Volume Claim.
+
+[ICP create Persistent Volume](./images/ark/icp_create_pv.png)
+[ICP create Persistent Volume Claim](./images/ark/icp_create_pvc.png)
+
+
+
+## Step 8. Deploy a sample Application with a Volume to be Backed Up
 
 From the Ark root directory cut the yaml code below and save it asconfig/ibm/with-pv.yaml. We are creating a simple nginx deployment in its own namespace along with a service and a dynamically provisioned PV where we store nginx logs. Note the annotation: backup.ark.heptio.com/backup-volumes: nginx-logs below which tells Restic the volume name that we are interested in backing up.
 
 ```
----
-apiVersion: v1
-kind: Namespace
-metadata:
- name: nginx-example
- labels:
-   app: nginx
----
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
- name: claim-nginx-logs
- namespace: nginx-example
- labels:
-   app: nginx
-   billingType: "monthly"
- annotations:
-   volume.beta.kubernetes.io/storage-class: "ibmc-file-bronze"
-spec:
- accessModes:
-   - ReadWriteMany
- resources:
-   requests:
-     storage: 24Gi
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -205,7 +196,7 @@ spec:
        ports:
        - containerPort: 80
        volumeMounts:
-         - mountPath: "/var/log/nginx"
+         - mountPath: "/storage"
            name: nginx-logs
            readOnly: false
 ---
@@ -243,23 +234,16 @@ Now that we have a volume mounted we can find out the nginx pod name and put som
 ```
 kubectl -n nginx-example get pods
 
-NAME READY STATUS RESTARTS AGE
-nginx-deployment-68fbbf4d7c-mkfnt 1/1 Running 0 10m
 
+NAME                                READY     STATUS    RESTARTS   AGE
+nginx-deployment-54c66df98b-6ppt5   1/1       Running   0          25s
+```
 Using the above pod name (yours will differ) we can log into the instance and add a file with the following commands:
 
-kubectl -n nginx-example exec -it nginx-deployment-68fbbf4d7c-mkfnt -- /bin/bash
-
-root@nginx-deployment-68fbbf4d7c-mkfnt:/# cd /var/log/nginx
-root@nginx-deployment-68fbbf4d7c-mkfnt:/var/log/nginx# echo “hw” > hw.txt
-root@nginx-deployment-68fbbf4d7c-mkfnt:/var/log/nginx# ls -al
-total 16
-drwxr-xr-x 2 nobody 4294967294 4096 Nov 15 19:22 .
-drwxr-xr-x 1 root root 4096 Jan 27 2015 ..
--rw-r — r — 1 nobody 4294967294 530 Nov 15 19:13 access.log
--rw-r — r — 1 nobody 4294967294 219 Nov 15 19:12 error.log
--rw-r — r — 1 nobody 4294967294 3 Nov 15 19:24 hw.txt
-root@nginx-deployment-68fbbf4d7c-mkfnt:/var/log/nginx# exit
+```
+ kubectl -n nginx-example exec -it nginx-deployment-54c66df98b-6ppt5 -- /bin/bash
+root@nginx-deployment-54c66df98b-6ppt5:/# cd /storage
+root@nginx-deployment-54c66df98b-6ppt5:/storage# echo "hw test it is late" > hw-test.txt
 ```
 
 We now have some content we would expect to be saved and restored with the addition of our hw.txt file. You can, of course just access the nginx front end service via your browser and see the access.log grow also.
@@ -269,22 +253,26 @@ We now have some content we would expect to be saved and restored with the addit
 We can backup up our sample application by scoping the backup to the application’s namespace as follows:
 
 ```
-ark backup create my-nginx-bu --include-namespaces nginx-example
+ark backup create my-nginx-bu-test-late --include-namespaces nginx-example
 
-Backup request “my-nginx-bu” submitted successfully.
-Run `ark backup describe my-nginx-bu` for more details.
+Backup request “my-nginx-bu-test-late” submitted successfully.
+Run `ark backup describe my-nginx-bu-test-late` for more details.
 ```
 
 We can check the result with:
 
-```ark backup describe my-nginx-bu --details```
+```ark backup describe my-nginx-bu-test-late --details```
 
 which after repeating a few times the result should show a complete status.
 
+[Ark completion](./images/ark/ark_completion.png)
+
 If you examine your IBM Cloud COS bucket associated with the backup you will see that a set of files has appeared.
+
 ## Step 9. Simulating Disaster
 
 With the following commands we will delete our application configuration and the PV associated and confirm they are removed:
+
 ```
 kubectl delete namespace nginx-example
 namespace “nginx-example” deleted
@@ -301,25 +289,52 @@ No resources found.
 
 We can restore the application and volume with the following command:
 
-ark restore create --from-backup my-nginx-bu
+```
+ark restore create --from-backup my-nginx-bu-test-late
 
-Restore request “my-nginx-bu-20181115145200” submitted successfully.
-Run `ark restore describe my-nginx-bu-20181115145200` for more details.
+Restore request "my-nginx-bu-test-late-20190207183813" submitted successfully.
+Run `ark restore describe my-nginx-bu-test-late-20190207183813` or `ark restore logs my-nginx-bu-test-late-20190207183813` for more details.
+```
 
-Restoring will take longer because we are dynamically provisioning another network drive behind the scenes. If we look at the status of our application it is “pending”:
+Restoring will take longer because we are dynamically provisioning another network drive behind the scenes.  Run the ark restore describe <restore_request_name> --details command to observe the progress.
 
 ```
-kubectl get pods -n nginx-example
+ark restore describe my-nginx-bu-test-late-20190207183813 --details
+Name:         my-nginx-bu-test-late-20190207183813
+Namespace:    heptio-ark
+Labels:       <none>
+Annotations:  <none>
 
-NAME READY STATUS RESTARTS AGE
-nginx-deployment-68fbbf4d7c-mkfnt 0/1 Pending 0 53s
+Backup:  my-nginx-bu-test-late
 
-kubectl get pvc -n nginx-example
+Namespaces:
+  Included:  *
+  Excluded:  <none>
 
-NAME STATUS VOLUME CAPACITY ACCESS MODES STORAGECLASS AGE
-claim-nginx-logs Pending ibmc-file-bronze 1m
+Resources:
+  Included:        *
+  Excluded:        nodes, events, events.events.k8s.io, backups.ark.heptio.com, restores.ark.heptio.com
+  Cluster-scoped:  auto
+
+Namespace mappings:  <none>
+
+Label selector:  <none>
+
+Restore PVs:  auto
+
+Phase:  Completed
+
+Validation errors:  <none>
+
+Warnings:  <none>
+Errors:    <none>
+
+Restic Restores:
+  Completed:
+    nginx-example/nginx-deployment-54c66df98b-6ppt5: nginx-logs
 
 ```
+
 Within a minute or two we see our application is up and the volume recovered using the commands below (your pod name will differ). We dump our “hello world” file (hw.txt) and its contents are what we had per-disaster, mission accomplished!
 
 ```
