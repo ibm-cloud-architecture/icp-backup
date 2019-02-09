@@ -38,6 +38,7 @@ A simple overview of the process is as follows:
 * Create and configure IBM object storage service.
 * Install Ark Client.
 * Configure Ark and Restic.
+* Login to your ICP cluster
 * Install Ark and Restic into your ICP cluster.
 * Deploy an application and make a change to the PV content.
 * Run Ark backup.
@@ -68,26 +69,26 @@ Your Ark service will write its backup into the bucket, so it requires the “Wr
 Ark uses an AWS S3 compatible API. Which means it authenticates using a signature created from a pair of access and secret keys — a set of HMAC credentials. You can create these HMAC credentials by specifying {“HMAC”:true} as an optional inline parameter. See step 3 in the Service credentials guide.
 ```
 
-![COS Service Credentials](./images/ark/icos_service_credentials.png)
+[COS Service Credentials](./images/ark/icos_service_credentials.png)
 
-After successfully creating a Service credential, you can view the JSON definition of the credential. Under the ```bash cos_hmac_keys``` entry there are ```bash access_key_id``` and ```bash secret_access_key```. We will use them later.
+After successfully creating a Service credential, you can view the JSON definition of the credential. Under the ```cos_hmac_keys``` entry there are ```access_key_id``` and ```secret_access_key```. We will use them later.
 
 
 
 ## Task 2: Setup Ark
 
-Step 3. Download and Install Ark
+### Step 3. Download and Install Ark
 
 Download Ark as described here: https://heptio.github.io/ark/v0.10.0/. A single tar ball download (https://github.com/heptio/ark/releases) should install the Ark client program along with the required configuration files for your cluster.
 
 Note that you will need Ark v0.10.0 or above for the Restic integration as shown in these instructions.
 Add the Ark client program (ark) somewhere in your $PATH.
 
-Step 4. Configure Ark Setup
+### Step 4. Configure Ark Setup
 
 Configure your kubectl client to access your IKS deployment. From the Ark root directory, edit the file config/ibm/05-ark-backupstoragelocation.yaml file. Add your COS keys as a Kubernetes Secret named cloud-credentials as shown below. Be sure to update <access_key_id> and <secret_access_key> with the value from your IBM COS service credentials. The remaining changes in the file are in the section showing the BackupStorageLocation resource named default. Configure access to the bucket arkbucket (or whatever you called yours) by editing the spec.objectstore.bucket section of the file. Edit the COS region and s3URL to match your choices. The file should look something like this when done:
 
-```bash
+```
 apiVersion: v1
 kind: Secret
 metadata:
@@ -116,96 +117,221 @@ spec:
     region: us-geo
 ```
 
-Step 5. Login to your ICP cluster
+###Step 5. Login to your ICP cluster
 
-![ICP Client Credentials](./images/ark/icp_client_config.png)
+[ICP Client Credentials](./images/ark/icp_client_config.png)
 
-After you login to the cluster's Admin Console, copy the client configurations from your profile
-Step 6. Deploy Ark into your IBM ICP Instance
+After you login to the cluster's Admin Console, copy the client configurations from your profile. You will use these credentials to login to your cluster from a terminal.
+
+### Step 6. Deploy Ark into your IBM ICP Instance
 
 Run the following commands from the Ark root directory:
-kubectl apply -f config/common/00-prereqs.yaml
+```kubectl apply -f config/common/00-prereqs.yaml```
 
-kubectl apply -f config/ibm/05-ark-backupstoragelocation.yaml
+```kubectl apply -f config/ibm/05-ark-backupstoragelocation.yaml```
 
-kubectl apply -f config/ibm/10-deployment.yaml
+```kubectl apply -f config/ibm/10-deployment.yaml```
 
-kubectl apply -f config/aws/20-restic-daemonset.yaml
+```kubectl apply -f config/aws/20-restic-daemonset.yaml```
 
 Verify that Ark and Restic are running correctly on your ICP cluster with the following command:
 
-kubectl -n heptio-ark get pods
+```kubectl -n heptio-ark get pods```
 
 which should show pods running similar to this:
 
+```
 NAME READY STATUS RESTARTS AGE
 ark-5464586757-q2crr 1/1 Running 0 5m
 restic-7657v 1/1 Running 0 5m
 restic-hh677 1/1 Running 0 5m
 restic-mb9vh 1/1 Running 0 5m
+```
 
 Note above that the count may vary as there is one Ark pod and a Restic Daemon set (in this case 3 pods, one per worker node).
 
-## Back up your ICP environment
 
-Here are the steps you should follow to take an initial backup your ICP environment.  Keep in mind our guiding principle:  **We do not take backups of nodes that we don't restore and just replace instead (Worker and Proxy).**
+## Step 7. Deploy a sample Application with a Volume to be Backed Up
 
-### Stop the ICP Servers (Virtual Machines)
+From the Ark root directory cut the yaml code below and save it asconfig/ibm/with-pv.yaml. We are creating a simple nginx deployment in its own namespace along with a service and a dynamically provisioned PV where we store nginx logs. Note the annotation: backup.ark.heptio.com/backup-volumes: nginx-logs below which tells Restic the volume name that we are interested in backing up.
 
-For the process used in this guide you do not need to stop the entire cluster all at once, but it is important to note a few items.  When attempting to bring down an entire cluster always stop the Master nodes first otherwise they will begin rescheduling and attempting to recover.  This is not desired when you are attempting to acheive an organized steady state.  Once the Masters have been stopped you are free to proceed in any order you please.  For cluster restart proceed in reverse and pring the Masters up once all other nodes have resumed.
+```
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+ name: nginx-example
+ labels:
+   app: nginx
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+ name: claim-nginx-logs
+ namespace: nginx-example
+ labels:
+   app: nginx
+   billingType: "monthly"
+ annotations:
+   volume.beta.kubernetes.io/storage-class: "ibmc-file-bronze"
+spec:
+ accessModes:
+   - ReadWriteMany
+ resources:
+   requests:
+     storage: 24Gi
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+ name: nginx-deployment
+ namespace: nginx-example
+spec:
+ replicas: 1
+ template:
+   metadata:
+     annotations:
+       backup.ark.heptio.com/backup-volumes: nginx-logs
+     labels:
+       app: nginx
+   spec:
+     volumes:
+       - name: nginx-logs
+         persistentVolumeClaim:
+           claimName: claim-nginx-logs
+     containers:
+     - image: nginx:1.7.9
+       name: nginx
+       ports:
+       - containerPort: 80
+       volumeMounts:
+         - mountPath: "/var/log/nginx"
+           name: nginx-logs
+           readOnly: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+ labels:
+   app: nginx
+ name: my-nginx
+ namespace: nginx-example
+spec:
+ ports:
+ - port: 80
+   targetPort: 80
+ selector:
+   app: nginx
+ type: LoadBalancer
+```
+Now we can deploy this sample app by running the following from the Ark root directory:
 
-> Follow other best practices such as if you are downing worker nodes for some reason you will want to use the drain command prior to taking them offline.
+```kubectl create -f config/ibm/with-pv.yaml```
 
-Stop kubelet first, Kubelet may attempt to restart Docker processes otherwise.
+We can check if the storage has been provision with:
 
-```sudo systemctl stop kubelet```
+```kubectl -n nginx-example get pvc```
 
-Next stop Docker:   ```sudo systemctl stop docker```
+You may have to run this over the course of a few minutes as the PVC gets bound. It will show pending but eventually show as bound similar to:
 
-Confirm that all processes are shutdown (be patient):  ```top```
+```
+NAME STATUS VOLUME CAPACITY ACCESS MODES STORAGECLASS AGE
+claim-nginx-logs Bound pvc-cab7c88b-e908–11e8–8afb-c295f183323f 24Gi RWX ibmc-file-bronze 3m
+```
 
-and that all related network ports are no longer in use:  ```netstat –antp```
+Now that we have a volume mounted we can find out the nginx pod name and put something in the volume (or just access the nginx web frontend and see access logs grow). Get your pod name with the following command (sample output shown):
+```
+kubectl -n nginx-example get pods
 
-Once you have completed the other tasks for performing system maintenance or taking backups, to restart the cluster simply reboot the nodes (Masters Last).
+NAME READY STATUS RESTARTS AGE
+nginx-deployment-68fbbf4d7c-mkfnt 1/1 Running 0 10m
 
-> Yes, some of the time you can actually start the processes explicitly as stated below, but this is a good opportunity to reaffirm that these systems will start on their own.  Also, this team has seen much more consistent success via the shutdown -r now method.
+Using the above pod name (yours will differ) we can log into the instance and add a file with the following commands:
 
-If you wish to restart without a reboot, start Docker first and then follow with kubelet:
+kubectl -n nginx-example exec -it nginx-deployment-68fbbf4d7c-mkfnt -- /bin/bash
 
-```sudo start docker ```
+root@nginx-deployment-68fbbf4d7c-mkfnt:/# cd /var/log/nginx
+root@nginx-deployment-68fbbf4d7c-mkfnt:/var/log/nginx# echo “hw” > hw.txt
+root@nginx-deployment-68fbbf4d7c-mkfnt:/var/log/nginx# ls -al
+total 16
+drwxr-xr-x 2 nobody 4294967294 4096 Nov 15 19:22 .
+drwxr-xr-x 1 root root 4096 Jan 27 2015 ..
+-rw-r — r — 1 nobody 4294967294 530 Nov 15 19:13 access.log
+-rw-r — r — 1 nobody 4294967294 219 Nov 15 19:12 error.log
+-rw-r — r — 1 nobody 4294967294 3 Nov 15 19:24 hw.txt
+root@nginx-deployment-68fbbf4d7c-mkfnt:/var/log/nginx# exit
+```
 
-Pause for a moment then:
+We now have some content we would expect to be saved and restored with the addition of our hw.txt file. You can, of course just access the nginx front end service via your browser and see the access.log grow also.
 
-```sudo start kubelet```
+## Step 8. Use Ark and Restic to backup K8S config and volume.
 
-You can follow the logs for kubelet:  ```sudo journalctl -e -u kubelet```
+We can backup up our sample application by scoping the backup to the application’s namespace as follows:
 
-### Taking an Infrustructure Level Backup of Your Cluster
+```
+ark backup create my-nginx-bu --include-namespaces nginx-example
 
-We recommend taking the backup immediately follwing the ICP installation.
+Backup request “my-nginx-bu” submitted successfully.
+Run `ark backup describe my-nginx-bu` for more details.
+```
 
-> In the case that you are performing an upgrade, post upgrade, follow this procedure for taking a cold backup once again.  Retain both the post-upgrade and post-initial-install backups of the Master nodes.  As a special note, if you have an HA cluster you should be able to accomplish the backup of the Master nodes without having an outage.  Simply back them up one at a time.
+We can check the result with:
 
-The tool to use for the backup depends on your hosting environment and accepted tools..
+```ark backup describe my-nginx-bu --details```
 
-* For a VMware environment, you can use VMware snapshot, Veaam, IBM Spectrum Protect, or any other approved snapshot tool that allows you to store this snapshot in perpetuity (forever).
-* For a public cloud environment, use the backup solution preferred by the cloud provider.
-* For any other environment, you can always use the storage-provided mechanism for backup, or other solution that allows you to accurately recreate the original state of the infrastructure and build.
+which after repeating a few times the result should show a complete status.
 
-### Validate your Backup
+If you examine your IBM Cloud COS bucket associated with the backup you will see that a set of files has appeared.
+## Step 9. Simulating Disaster
 
-No backup is **good** until we test it by using it to successfully restore our cluster (or component thereof).
+With the following commands we will delete our application configuration and the PV associated and confirm they are removed:
+```
+kubectl delete namespace nginx-example
+namespace “nginx-example” deleted
+```
+```
+kubectl get pvc -n nginx-example
+No resources found.
+```
+```
+kubectl get pods -n nginx-example
+No resources found.
+```
+## Step 10. Recovering from Disaster
 
-Follow these steps to validate your backup:
+We can restore the application and volume with the following command:
 
-* Destroy the node (or nodes) via whichever means fits your potential / expected scenario
-* Follow the provided steps to restore what was destroyed in the previous step
-* Verify the validity of whatever was destroyed and restored
+ark restore create --from-backup my-nginx-bu
 
-> The fact that an ICP node is running is a good thing, but that does not necessarily mean your restoration was successful.  In your non-production environments perform steps that force workload mobility.  Verify that you Masters are able to behave like Masters, Proxies like Proxies, .... you get the idea.
+Restore request “my-nginx-bu-20181115145200” submitted successfully.
+Run `ark restore describe my-nginx-bu-20181115145200` for more details.
 
+Restoring will take longer because we are dynamically provisioning another network drive behind the scenes. If we look at the status of our application it is “pending”:
 
-### References
-[1] https://github.com/heptio/velero
-[2] https://medium.com/@mlrborowski/using-ark-and-restic-to-provide-dr-for-ibm-kubernetes-service-cae53cfe532
-[3] https://blog.heptio.com/ark-v0-9-alpha-now-with-restic-14ad6b402ab3
+```
+kubectl get pods -n nginx-example
+
+NAME READY STATUS RESTARTS AGE
+nginx-deployment-68fbbf4d7c-mkfnt 0/1 Pending 0 53s
+
+kubectl get pvc -n nginx-example
+
+NAME STATUS VOLUME CAPACITY ACCESS MODES STORAGECLASS AGE
+claim-nginx-logs Pending ibmc-file-bronze 1m
+
+```
+Within a minute or two we see our application is up and the volume recovered using the commands below (your pod name will differ). We dump our “hello world” file (hw.txt) and its contents are what we had per-disaster, mission accomplished!
+
+```
+kubectl get pods -n nginx-example
+
+NAME READY STATUS RESTARTS AGE
+nginx-deployment-68fbbf4d7c-mkfnt 1/1 Running 0 6m
+
+kubectl -n nginx-example exec -it nginx-deployment-68fbbf4d7c-mkfnt -- cat /var/log/nginx/hw.txt
+
+hw
+```
+## Summary
+
+Ark and Restic have made the lives of Kubernetes developers and administrators a lot easier when it comes to DR. Using ubiquitously available object storage as the backend, a Kubernetes API aware client and cluster runtime agents, Ark/Restic has solved the Kubernetes DR challenge in an elegant yet completely accessible way. Given its ease of use and reach feature set, Ark/Restic has expanded the set of achievable use cases to now include developer workflows and potentially even cloud to cloud migration. The sky is the limit with Ark cloud DR.
