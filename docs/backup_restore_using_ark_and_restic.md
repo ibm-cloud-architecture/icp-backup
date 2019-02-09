@@ -157,12 +157,12 @@ Note above that the count may vary as there is one Ark pod and a Restic Daemon s
 You can use the ICP admin console to create the Namespace, Persistent Volume and Persistent Volume Claim as below.
 
 
-[ICP create Namespace](./images/ark/icp_create_namespace.png)
+[!ICP create Namespace](./images/ark/icp_create_namespace.png)
 
 Under the Platform, Storage settings create the Persistent Volume and Persistent Volume Claim.
 
-[ICP create Persistent Volume](./images/ark/icp_create_pv.png)
-[ICP create Persistent Volume Claim](./images/ark/icp_create_pvc.png)
+[!ICP create Persistent Volume](./images/ark/icp_create_pv.png)
+[!ICP create Persistent Volume Claim](./images/ark/icp_create_pvc.png)
 
 
 
