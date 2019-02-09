@@ -36,7 +36,7 @@ Our current setup includes two master nodes, two proxy nodes, two management nod
 
 In order to follow all of the recommendations in this guide, it is assumed that you have already provisioned an ICP cluster and set up NFS storage for the same, and are able to have access to your cluster immediately post-install.
 
-![Ark Backup Solution Overview ]((./images/ark/ark_flow.png))
+![ Ark Backup Solution Overview ](./images/ark/ark_flow.png)
 A simple overview of the process is as follows:
 
 * Login (or first create) to your IBM Cloud Account.
