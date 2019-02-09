@@ -1,6 +1,6 @@
 # Backup and Restore of Applications running on ICP
 
-In this document, we will describe how to back up and restore your applications running on IBM Cloud Private (ICP) environment using Ark and Restic.
+In this document, we will describe how to back up and restore your containerized applications running on IBM Cloud Private (ICP) environment using Ark and Restic.
 
 
 ### Introduction to Veloro (previously known as Ark) and Restic
@@ -11,12 +11,12 @@ Ark provides backup and restore capabilities for all or part of your kubernetes 
 
 With the [integration of Restic](https://blog.heptio.com/ark-v0-9-alpha-now-with-restic-14ad6b402ab3), Ark now natively supports backing up and restoring data from any Kubernetes volume or persistent volume. Restic takes file-level backups of your data, and has several key features that make it a great fit for Ark’s needs:
 
-Supports multiple storage backends, including IBM Cloud Object Storage, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Minio
+* Supports multiple storage backends, including IBM Cloud Object Storage, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Minio
 * Fully encrypts backup data at rest and in transit with AES-256 in counter mode
 * Only backs up data that has changed since the prior backup, using content-defined chunking
 * De-duplicates data within a single backup for efficient use of storage
 
-As Public Cloud Providers continue to drive down costs of Object Storage services; using Ark and Restics with Object storage as a backup target makes a promising option to consider. We will explore this very scenario for Application backup and restore operations below.
+![](./images/ark/ct_quote.png)
 
 ### Scope
 
@@ -29,6 +29,8 @@ We are following the [companion guide for IBM Cloud Kubernetes Service (IKS)](ht
 This proves:
 1. The underlying framework including kubernetes is exactly the same in ICP and IKS as the open sourced kubernetes project; supporting portability across public, private and multi-cloud environments.
 2. Ark and Restic is storage agnostic.
+
+### Process Flow
 
 In order to follow all of the recommendations in this guide, it is assumed that you have already provisioned an ICP cluster and set up NFS storage for the same, and are able to have access to your cluster immediately post-install.
 
@@ -59,7 +61,7 @@ To store Kubernetes backups, you need a destination bucket in an instance of Clo
 
 If you don’t have a COS instance, you can create a new one, according to the detailed instructions in Creating a new resource instance. The next step is to create a bucket for your backups. Ark and Restic will use the same bucket to store K8S configuration data as well as Volume backups. See instructions in Create a bucket to store your data. We are naming the bucket arkbucket and will use this name later to configure Ark backup location. You will need to choose another name for your bucket as IBM COS bucket names are globally unique. Choose “Cross Region” Resiliency so it is easy to restore anywhere.
 
-[COS Bucket Creation (arkbucket shown but create restic bucket also)](./images/ark/icos_create_bucket.png)
+![COS Bucket Creation (arkbucket shown but create restic bucket also)](./images/ark/icos_create_bucket.png)
 
 
 The last step in the COS configuration is to define a service that can store data in the bucket. The process of creating service credentials is described in Service credentials. Several comments:
@@ -69,7 +71,7 @@ Your Ark service will write its backup into the bucket, so it requires the “Wr
 Ark uses an AWS S3 compatible API. Which means it authenticates using a signature created from a pair of access and secret keys — a set of HMAC credentials. You can create these HMAC credentials by specifying {“HMAC”:true} as an optional inline parameter. See step 3 in the Service credentials guide.
 ```
 
-[COS Service Credentials](./images/ark/icos_service_credentials.png)
+![COS Service Credentials](./images/ark/icos_service_credentials.png)
 
 After successfully creating a Service credential, you can view the JSON definition of the credential. Under the ```cos_hmac_keys``` entry there are ```access_key_id``` and ```secret_access_key```. We will use them later.
 
@@ -120,7 +122,7 @@ The file should look something like this when done.
 
 ### Step 5. Login to your ICP cluster
 
-[ICP Client Credentials](./images/ark/icp_client_config.png)
+![ICP Client Credentials](./images/ark/icp_client_config.png)
 
 After you login to the cluster's Admin Console, copy the client configurations from your profile. You will use these credentials to login to your cluster from a terminal.
 
@@ -157,12 +159,12 @@ Note above that the count may vary as there is one Ark pod and a Restic Daemon s
 You can use the ICP admin console to create the Namespace, Persistent Volume and Persistent Volume Claim as below.
 
 
-[!ICP create Namespace](./images/ark/icp_create_namespace.png)
+![ICP create Namespace](./images/ark/icp_create_namespace.png)
 
 Under the Platform, Storage settings create the Persistent Volume and Persistent Volume Claim.
 
-[!ICP create Persistent Volume](./images/ark/icp_create_pv.png)
-[!ICP create Persistent Volume Claim](./images/ark/icp_create_pvc.png)
+![ICP create Persistent Volume](./images/ark/icp_create_pv.png)
+![ICP create Persistent Volume Claim](./images/ark/icp_create_pvc.png)
 
 
 
@@ -248,7 +250,7 @@ root@nginx-deployment-54c66df98b-6ppt5:/storage# echo "hw test it is late" > hw-
 
 We now have some content we would expect to be saved and restored with the addition of our hw.txt file. You can, of course just access the nginx front end service via your browser and see the access.log grow also.
 
-## Step 8. Use Ark and Restic to backup K8S config and volume.
+## Step 9. Use Ark and Restic to backup K8S config and volume.
 
 We can backup up our sample application by scoping the backup to the application’s namespace as follows:
 
@@ -265,11 +267,11 @@ We can check the result with:
 
 which after repeating a few times the result should show a complete status.
 
-[Ark completion](./images/ark/ark_completion.png)
+![Ark completion](./images/ark/ark_completion.png)
 
 If you examine your IBM Cloud COS bucket associated with the backup you will see that a set of files has appeared.
 
-## Step 9. Simulating Disaster
+## Step 10. Simulating Disaster
 
 With the following commands we will delete our application configuration and the PV associated and confirm they are removed:
 
@@ -285,7 +287,7 @@ No resources found.
 kubectl get pods -n nginx-example
 No resources found.
 ```
-## Step 10. Recovering from Disaster
+## Step 11. Recovering from Disaster
 
 We can restore the application and volume with the following command:
 
@@ -335,18 +337,18 @@ Restic Restores:
 
 ```
 
-Within a minute or two we see our application is up and the volume recovered using the commands below (your pod name will differ). We dump our “hello world” file (hw.txt) and its contents are what we had per-disaster, mission accomplished!
+Within a minute or two we see our application is up and the volume recovered using the commands below (your pod name will differ). We dump our “hello world” file (hw-test.txt) and its contents are what we had per-disaster, mission accomplished!
 
 ```
 kubectl get pods -n nginx-example
 
 NAME READY STATUS RESTARTS AGE
-nginx-deployment-68fbbf4d7c-mkfnt 1/1 Running 0 6m
+nginx-deployment-54c66df98b-6ppt5 1/1 Running 0 6m
 
-kubectl -n nginx-example exec -it nginx-deployment-68fbbf4d7c-mkfnt -- cat /var/log/nginx/hw.txt
+kubectl -n nginx-example exec -it nginx-deployment-54c66df98b-6ppt5 -- cat /storage/hw-test.txt
 
-hw
+hw test it is late
 ```
 ## Summary
 
-Ark and Restic have made the lives of Kubernetes developers and administrators a lot easier when it comes to DR. Using ubiquitously available object storage as the backend, a Kubernetes API aware client and cluster runtime agents, Ark/Restic has solved the Kubernetes DR challenge in an elegant yet completely accessible way. Given its ease of use and reach feature set, Ark/Restic has expanded the set of achievable use cases to now include developer workflows and potentially even cloud to cloud migration. The sky is the limit with Ark cloud DR.
+Velero/Ark offers a developer friendly option to rapid recovery of container hosted applications and their supporting persistent volumes. The extensible plugin based model makes it possible for developers and administrators to support additional PersistentVolume types. While, its strength lies in the Disaster Recovery space supporting Backup and Restore operations; it can support cluster portability by migrating resources between clusters e.g. between Dev/Test environments or across multiple cloud providers.
