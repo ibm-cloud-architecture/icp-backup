@@ -1,11 +1,11 @@
-# Backup and Restore of Applications running on ICP
+# Backup and Restore of Applications running on ICP using Ark and Restic
 
 In this document, we will describe how to back up and restore your containerized applications running on IBM Cloud Private (ICP) environment using Ark and Restic.
 
 
-### Introduction to Veloro (previously known as Ark) and Restic
+### Introduction to Veloro (also known as Ark) and Restic
 
-[Veloro](https://github.com/heptio/velero); previously known as Ark is an open source, kubernetes backup recovery utility from Heptio. As of writing this article, the Heptio team and the community contributors are aggressively working on the first Velero release and migrating current Ark deployments to Velero. For the purpose of this article we will refer to the backup utility as Ark.
+[Veloro](https://github.com/heptio/velero); also known as Ark is an open source, kubernetes backup recovery utility from Heptio. As of writing this article, the Heptio team and the community contributors are aggressively working on the first Velero release and migrating current Ark deployments to Velero. For the purpose of this article we will refer to the backup utility as Ark.
 
 Ark provides backup and restore capabilities for all or part of your kubernetes cluster. It backs up all tags, deployments, persistent volumes, and more. Since v0.6.0, Ark has adopted a plugin model which enables anyone to easily implement additional object and block storage backends, outside of the main Ark repository.
 
@@ -30,10 +30,13 @@ This proves:
 1. The underlying framework including kubernetes is exactly the same in ICP and IKS as the open sourced kubernetes project; supporting portability across public, private and multi-cloud environments.
 2. Ark and Restic is storage agnostic.
 
-### Process Flow
+### Solution Overview
+
+Our current setup includes two master nodes, two proxy nodes, two management nodes, three worker nodes, and one storage (NFS) node.
 
 In order to follow all of the recommendations in this guide, it is assumed that you have already provisioned an ICP cluster and set up NFS storage for the same, and are able to have access to your cluster immediately post-install.
 
+![Ark Backup Solution Overview ]((./images/ark/ark_flow.png))
 A simple overview of the process is as follows:
 
 * Login (or first create) to your IBM Cloud Account.
@@ -135,6 +138,11 @@ Run the following commands from the Ark root directory:
 
 ```kubectl apply -f config/ibm/10-deployment.yaml```
 
+Should you encounter an error as below, please note that this is caused by Vulnerability Advisor blocking grc content. You can resolve this by adding  gcr.io/heptio-images/* to namespace heptio-ark
+
+Error:
+Deny "gcr.io/heptio-images/ark:v0.10.1", no matching repositories in ClusterImagePolicy and no ImagePolicies in the "heptio-ark" namespace
+
 ```kubectl apply -f config/aws/20-restic-daemonset.yaml```
 
 Verify that Ark and Restic are running correctly on your ICP cluster with the following command:
@@ -145,10 +153,10 @@ which should show pods running similar to this:
 
 ```
 NAME READY STATUS RESTARTS AGE
-ark-5464586757-q2crr 1/1 Running 0 5m
-restic-7657v 1/1 Running 0 5m
-restic-hh677 1/1 Running 0 5m
-restic-mb9vh 1/1 Running 0 5m
+ark-7b9c58c57d-rnqff 1/1 Running 0 5m
+restic-b8x5m 1/1 Running 0 5m
+restic-hzgt7 1/1 Running 0 5m
+restic-qwz5x 1/1 Running 0 5m
 ```
 
 Note above that the count may vary as there is one Ark pod and a Restic Daemon set (in this case 3 pods, one per worker node).
@@ -166,7 +174,7 @@ Under the Platform, Storage settings create the Persistent Volume and Persistent
 ![ICP create Persistent Volume](./images/ark/icp_create_pv.png)
 ![ICP create Persistent Volume Claim](./images/ark/icp_create_pvc.png)
 
-
+## Task 3: Setup your Application for Backup
 
 ## Step 8. Deploy a sample Application with a Volume to be Backed Up
 
@@ -228,8 +236,8 @@ We can check if the storage has been provision with:
 You may have to run this over the course of a few minutes as the PVC gets bound. It will show pending but eventually show as bound similar to:
 
 ```
-NAME STATUS VOLUME CAPACITY ACCESS MODES STORAGECLASS AGE
-claim-nginx-logs Bound pvc-cab7c88b-e908–11e8–8afb-c295f183323f 24Gi RWX ibmc-file-bronze 3m
+NAME               STATUS    VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+claim-nginx-logs   Bound     nginx-logs   24Gi       RWX            nfsstorage 3m
 ```
 
 Now that we have a volume mounted we can find out the nginx pod name and put something in the volume (or just access the nginx web frontend and see access logs grow). Get your pod name with the following command (sample output shown):
@@ -271,6 +279,8 @@ which after repeating a few times the result should show a complete status.
 
 If you examine your IBM Cloud COS bucket associated with the backup you will see that a set of files has appeared.
 
+## Task 4: Simulate Disaster and Restore Application
+
 ## Step 10. Simulating Disaster
 
 With the following commands we will delete our application configuration and the PV associated and confirm they are removed:
@@ -286,6 +296,17 @@ No resources found.
 ```
 kubectl get pods -n nginx-example
 No resources found.
+```
+
+If your PV is not deleted, manually remove the PV.
+```
+kubectl delete pv nginx-logs
+
+Verify that the PV is removed.
+```
+kubectl get pv
+```
+
 ```
 ## Step 11. Recovering from Disaster
 
@@ -349,6 +370,6 @@ kubectl -n nginx-example exec -it nginx-deployment-54c66df98b-6ppt5 -- cat /stor
 
 hw test it is late
 ```
-## Summary
 
-Velero/Ark offers a developer friendly option to rapid recovery of container hosted applications and their supporting persistent volumes. The extensible plugin based model makes it possible for developers and administrators to support additional PersistentVolume types. While, its strength lies in the Disaster Recovery space supporting Backup and Restore operations; it can support cluster portability by migrating resources between clusters e.g. between Dev/Test environments or across multiple cloud providers.
+## Summary
+With this simple usecase, we have proven backup and restore of an application using Arc and Restic. Ark offers a developer friendly option to rapid recovery of container hosted applications and their supporting persistent volumes. The extensible plugin based model makes it possible for developers and administrators to support additional PersistentVolume types. While, its strength lies in the Disaster Recovery space supporting Backup and Restore operations; it can support cluster portability by migrating resources between clusters e.g. between Dev/Test environments or across multiple cloud providers.
