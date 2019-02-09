@@ -5,11 +5,11 @@ In this document, we will describe how to back up and restore your applications 
 
 ### Introduction to Veloro (previously known as Ark) and Restic
 
-[Veloro][1]; previously known as Ark is an open source, kubernetes backup recovery utility from Heptio. As of writing this article, the Heptio team and the community contributors are aggressively working on the first Velero release and migrating current Ark deployments to Velero. For the purpose of this article we will refer to the backup utility as Ark.
+[Veloro](https://github.com/heptio/velero); previously known as Ark is an open source, kubernetes backup recovery utility from Heptio. As of writing this article, the Heptio team and the community contributors are aggressively working on the first Velero release and migrating current Ark deployments to Velero. For the purpose of this article we will refer to the backup utility as Ark.
 
 Ark provides backup and restore capabilities for all or part of your kubernetes cluster. It backs up all tags, deployments, persistent volumes, and more. Since v0.6.0, Ark has adopted a plugin model which enables anyone to easily implement additional object and block storage backends, outside of the main Ark repository.
 
-With the [integration of Restic][3], Ark now natively supports backing up and restoring data from any Kubernetes volume or persistent volume. Restic takes file-level backups of your data, and has several key features that make it a great fit for Ark’s needs:
+With the [integration of Restic](https://blog.heptio.com/ark-v0-9-alpha-now-with-restic-14ad6b402ab3), Ark now natively supports backing up and restoring data from any Kubernetes volume or persistent volume. Restic takes file-level backups of your data, and has several key features that make it a great fit for Ark’s needs:
 
 Supports multiple storage backends, including IBM Cloud Object Storage, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Minio
 * Fully encrypts backup data at rest and in transit with AES-256 in counter mode
@@ -22,7 +22,7 @@ As Public Cloud Providers continue to drive down costs of Object Storage service
 
 In this guide, we will set up and configure the Ark client on a local machine, and deploy the Ark server into our Kubernetes cluster. We'll then deploy a sample Nginx app that uses a Persistent Volume for logging, backup the application to IBM Cloud Object Storage, simulate a disaster recovery scenario and restore the application with its persistent volume.
 
-We are following the [companion guide for IBM Cloud Kubernetes Service (IKS)][2] with the following differences:
+We are following the [companion guide for IBM Cloud Kubernetes Service (IKS)](https://medium.com/@mlrborowski/using-ark-and-restic-to-provide-dr-for-ibm-kubernetes-service-cae53cfe532) with the following differences:
 1. Using ICP vs. IKS
 2. Using NFS storage as the storage options for the ICP cluster vs. GlusterFS
 
@@ -34,15 +34,15 @@ In order to follow all of the recommendations in this guide, it is assumed that 
 
 A simple overview of the process is as follows:
 
-    * Login (or first create) to your IBM Cloud Account.
-    * Create and configure IBM object storage service.
-    * Install Ark Client.
-    * Configure Ark and Restic.
-    * Install Ark and Restic into your ICP cluster.
-    * Deploy an application and make a change to the PV content.
-    * Run Ark backup.
-    * Delete the application and PV, simulating disaster.
-    * Restore application from Ark/Restic Backup and all is well again.
+* Login (or first create) to your IBM Cloud Account.
+* Create and configure IBM object storage service.
+* Install Ark Client.
+* Configure Ark and Restic.
+* Install Ark and Restic into your ICP cluster.
+* Deploy an application and make a change to the PV content.
+* Run Ark backup.
+* Delete the application and PV, simulating disaster.
+* Restore application from Ark/Restic Backup and all is well again.
 
 ## Task 1: Setup your Backup target
 
@@ -52,19 +52,18 @@ We will use the IBM Cloud Object Storage (COS) service as the backup target.
 
 https://console.cloud.ibm.com
 
-###Step 2. Create an IBM Cloud Object Storage Service Instance
+### Step 2. Create an IBM Cloud Object Storage Service Instance
 
 To store Kubernetes backups, you need a destination bucket in an instance of Cloud Object Storage (COS) and you have to configure service credentials to access this instance.
 
 If you don’t have a COS instance, you can create a new one, according to the detailed instructions in Creating a new resource instance. The next step is to create a bucket for your backups. Ark and Restic will use the same bucket to store K8S configuration data as well as Volume backups. See instructions in Create a bucket to store your data. We are naming the bucket arkbucket and will use this name later to configure Ark backup location. You will need to choose another name for your bucket as IBM COS bucket names are globally unique. Choose “Cross Region” Resiliency so it is easy to restore anywhere.
 
-![COS Bucket Creation (arkbucket shown but create restic bucket also)](./images/ark/icos_create_bucket.png)
+[COS Bucket Creation (arkbucket shown but create restic bucket also)](./images/ark/icos_create_bucket.png)
 
 
 The last step in the COS configuration is to define a service that can store data in the bucket. The process of creating service credentials is described in Service credentials. Several comments:
 
-```bash
-
+```
 Your Ark service will write its backup into the bucket, so it requires the “Writer” access role.
 Ark uses an AWS S3 compatible API. Which means it authenticates using a signature created from a pair of access and secret keys — a set of HMAC credentials. You can create these HMAC credentials by specifying {“HMAC”:true} as an optional inline parameter. See step 3 in the Service credentials guide.
 ```
