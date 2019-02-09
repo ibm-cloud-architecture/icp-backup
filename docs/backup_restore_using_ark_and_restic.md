@@ -34,41 +34,44 @@ In order to follow all of the recommendations in this guide, it is assumed that 
 
 A simple overview of the process is as follows:
 
-    Login (or first create) to your IBM Cloud Account.
-    Create and configure IBM object storage service.
-    Install Ark Client.
-    Configure Ark and Restic.
-    Install Ark and Restic into your ICP cluster.
-    Deploy an application and make a change to the PV content.
-    Run Ark backup.
-    Delete the application and PV, simulating disaster.
-    Restore application from Ark/Restic Backup and all is well again.
+    * Login (or first create) to your IBM Cloud Account.
+    * Create and configure IBM object storage service.
+    * Install Ark Client.
+    * Configure Ark and Restic.
+    * Install Ark and Restic into your ICP cluster.
+    * Deploy an application and make a change to the PV content.
+    * Run Ark backup.
+    * Delete the application and PV, simulating disaster.
+    * Restore application from Ark/Restic Backup and all is well again.
 
 ## Task 1: Setup your Backup target
-###Step 1. Login to the IBM Cloud (or create you free account if this is your first time)
+
+We will use the IBM Cloud Object Storage (COS) service as the backup target.
+
+### Step 1. Login to the IBM Cloud (or create you free account if this is your first time)
 
 https://console.cloud.ibm.com
-Step 2. Create an IBM Cloud Object Storage Service Instance
+
+###Step 2. Create an IBM Cloud Object Storage Service Instance
 
 To store Kubernetes backups, you need a destination bucket in an instance of Cloud Object Storage (COS) and you have to configure service credentials to access this instance.
 
-    If you don’t have a COS instance, you can create a new one, according to the detailed instructions in Creating a new resource instance.
-    The next step is to create a bucket for your backups. Ark and Restic will use the same bucket to store K8S configuration data as well as Volume backups. See instructions in Create a bucket to store your data. We are naming the bucket arkbucket and will use this name later to configure Ark backup location. You will need to choose another name for your bucket as IBM COS bucket names are globally unique. Choose “Cross Region” Resiliency so it is easy to restore anywhere.
+If you don’t have a COS instance, you can create a new one, according to the detailed instructions in Creating a new resource instance. The next step is to create a bucket for your backups. Ark and Restic will use the same bucket to store K8S configuration data as well as Volume backups. See instructions in Create a bucket to store your data. We are naming the bucket arkbucket and will use this name later to configure Ark backup location. You will need to choose another name for your bucket as IBM COS bucket names are globally unique. Choose “Cross Region” Resiliency so it is easy to restore anywhere.
 
-![COS Bucket Creation (arkbucket shown but create restic bucket also) ](./images/ark/icos_create_bucket.png)
+![COS Bucket Creation (arkbucket shown but create restic bucket also)](./images/ark/icos_create_bucket.png)
 
 
-    The last step in the COS configuration is to define a service that can store data in the bucket. The process of creating service credentials is described in Service credentials. Several comments:
+The last step in the COS configuration is to define a service that can store data in the bucket. The process of creating service credentials is described in Service credentials. Several comments:
 
 ```bash
 
-    Your Ark service will write its backup into the bucket, so it requires the “Writer” access role.
-    Ark uses an AWS S3 compatible API. Which means it authenticates using a signature created from a pair of access and secret keys — a set of HMAC credentials. You can create these HMAC credentials by specifying {“HMAC”:true} as an optional inline parameter. See step 3 in the Service credentials guide.
+Your Ark service will write its backup into the bucket, so it requires the “Writer” access role.
+Ark uses an AWS S3 compatible API. Which means it authenticates using a signature created from a pair of access and secret keys — a set of HMAC credentials. You can create these HMAC credentials by specifying {“HMAC”:true} as an optional inline parameter. See step 3 in the Service credentials guide.
 ```
 
-    ![COS Service Credentials](./images/ark/icos_service_credentials.png)
+![COS Service Credentials](./images/ark/icos_service_credentials.png)
 
-    After successfully creating a Service credential, you can view the JSON definition of the credential. Under the ```bash cos_hmac_keys``` entry there are ```bash access_key_id``` and ```bash secret_access_key```. We will use them later.
+After successfully creating a Service credential, you can view the JSON definition of the credential. Under the ```bash cos_hmac_keys``` entry there are ```bash access_key_id``` and ```bash secret_access_key```. We will use them later.
 
 
 
@@ -76,15 +79,16 @@ To store Kubernetes backups, you need a destination bucket in an instance of Clo
 
 Step 3. Download and Install Ark
 
-    Download Ark as described here: https://heptio.github.io/ark/v0.10.0/. A single tar ball download (https://github.com/heptio/ark/releases) should install the Ark client program along with the required configuration files for your cluster.
-    Note that you will need Ark v0.10.0 or above for the Restic integration as shown in these instructions.
-    Add the Ark client program (ark) somewhere in your $PATH.
+Download Ark as described here: https://heptio.github.io/ark/v0.10.0/. A single tar ball download (https://github.com/heptio/ark/releases) should install the Ark client program along with the required configuration files for your cluster.
+
+Note that you will need Ark v0.10.0 or above for the Restic integration as shown in these instructions.
+Add the Ark client program (ark) somewhere in your $PATH.
 
 Step 4. Configure Ark Setup
 
-    Configure your kubectl client to access your IKS deployment.
-    From the Ark root directory, edit the file config/ibm/05-ark-backupstoragelocation.yaml file. Add your COS keys as a Kubernetes Secret named cloud-credentials as shown below. Be sure to update <access_key_id> and <secret_access_key> with the value from your IBM COS service credentials. The remaining changes in the file are in the section showing the BackupStorageLocation resource named default. Configure access to the bucket arkbucket (or whatever you called yours) by editing the spec.objectstore.bucket section of the file. Edit the COS region and s3URL to match your choices. The file should look something like this when done:
+Configure your kubectl client to access your IKS deployment. From the Ark root directory, edit the file config/ibm/05-ark-backupstoragelocation.yaml file. Add your COS keys as a Kubernetes Secret named cloud-credentials as shown below. Be sure to update <access_key_id> and <secret_access_key> with the value from your IBM COS service credentials. The remaining changes in the file are in the section showing the BackupStorageLocation resource named default. Configure access to the bucket arkbucket (or whatever you called yours) by editing the spec.objectstore.bucket section of the file. Edit the COS region and s3URL to match your choices. The file should look something like this when done:
 
+```bash
 apiVersion: v1
 kind: Secret
 metadata:
@@ -111,6 +115,7 @@ spec:
     s3ForcePathStyle: "true"
     s3Url:  http://s3-api.us-geo.objectstorage.softlayer.net
     region: us-geo
+```
 
 Step 5. Login to your ICP cluster
 
