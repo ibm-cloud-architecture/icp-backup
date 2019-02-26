@@ -8,7 +8,7 @@ Two cron jobs get deployed:
 
 # ICP Cloudant Backup
 
-The ICP Cloudant backup cronjob, takes a backup of the ICP Cloudant databases.  Certain databases may be excluded from the backup based on the names provided with the `--exlcude` parameter as specified using the `.Values.backup.args.exclude` value.
+The ICP Cloudant backup cronjob, takes a backup of the ICP Cloudant databases.  Certain databases may be excluded from the backup based on the names provided with the `--exclude` parameter as specified using the `.Values.backup.args.exclude` value.
 
 The backup schedule is set using `.Values.backup.cronjob.schedule` value.
 
