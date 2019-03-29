@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: icp-mongodb-backup
-        image: hyc-cloud-private-stable-docker-local.artifactory.swg-devops.com/ibmcom-amd64/icp-mongodb
+        image: ibmcom/icp-mongodb
         command: ["bash", "-c", "cat /cred/mongo-certs/tls.crt /cred/mongo-certs/tls.key > /mongo.pem; cat /cred/cluster-ca/tls.crt /cred/cluster-ca/tls.key > /ca.pem; mongodump --oplog --out /dump --host mongodb:$MONGODB_SERVICE_PORT --username $ADMIN_USER --password $ADMIN_PASSWORD --authenticationDatabase admin --ssl --sslCAFile /ca.pem --sslPEMKeyFile /mongo.pem"]
         volumeMounts:
         - mountPath: "/dump"
