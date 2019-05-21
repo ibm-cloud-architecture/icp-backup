@@ -45,7 +45,7 @@ ansible master,management -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --p
 
 Next, **purge** the current etcd data on all Master Nodes:
 ```
-ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "rm -rf /var/lib/etcd"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "rm -rf /var/lib/etcd /var/lib/etcd-wal/wal"
 ```
 
 Copy etcd snapshot to all Master Nodes.  Assuming you have the file `/tmp/etcd.your-date-and-time.db` in your environment, containing a backup of your etcd, run the following procedure to copy the file to all master nodes:
@@ -62,6 +62,8 @@ The command above loads the data to directory /var/lib/etcd/restored on each of 
 
 ```
 ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "mv /var/lib/etcd/restored/* /var/lib/etcd/"
+
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "mv /var/lib/etcd/member/wal /var/lib/etcd-wal/wal"
 ```
 
 Before we re-enable kubelet and etcd with the newly restored data, we will purge kubelet pods directory to ensure consistency between the cached kubelet data and the etcd data.  We use a simple script to ensure that all docker mounts are unmounted before purging the pods directory.  In deployments where we have management nodes, we'll also need to run the following:
