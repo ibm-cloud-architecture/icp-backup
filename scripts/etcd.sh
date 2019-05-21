@@ -1,6 +1,6 @@
 export org=ibmcom
 export repo=etcd
-export tag=v3.2.24
+export tag=3.2.24
 #export endpoint=10.0.0.1
 
 export etcdctl2="docker run --entrypoint=etcdctl -v /etc/cfc/conf/etcd:/certs -v /var/lib/etcd:/var/lib/etcd -v /tmp:/data $org/$repo:$tag --cert-file=/certs/client.pem --key-file=/certs/client-key.pem --ca-file=/certs/ca.pem --endpoints https://${endpoint}:4001"

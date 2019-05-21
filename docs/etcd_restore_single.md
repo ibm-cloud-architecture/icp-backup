@@ -23,7 +23,7 @@ Verify the pod has indeed stopped by running the following command:  `docker ps 
 
 If the pod has successfully been stopped you will see nothing returned.
 
-Next, we need to purge the current etcd data by running the following command:  `rm -rf /var/lib/etcd`
+Next, we need to purge the current etcd data by running the following command:  `rm -rf /var/lib/etcd /var/lib/etcd-wal/wal`
 
 Using your backup file `/tmp/etcd.your-date-and-time.db` from your clusters earlier backup run the following procedure to restore etcd:  `./restoreEtcd.sh etcd.your-date-and-time.db`
 
@@ -41,6 +41,7 @@ The command above loads the data to directory `/var/lib/etcd/restored`.
 Next you must move the data to the expected directory by running the following commands:
 ```
 mv /var/lib/etcd/restored/* /var/lib/etcd/
+mv /var/lib/etcd/member/wal /var/lib/etcd-wal/wal
 rmdir /var/lib/etcd/restored
 ```
 
