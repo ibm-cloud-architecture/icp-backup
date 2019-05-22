@@ -2,9 +2,9 @@
 
 In a multi master ICP environment you'll need to first restore a consistent cluster.  This can either be done via restoring a single node, and then growing the cluster out to the desired size, or by restoring the entire cluster from the same backup copy all at once. In this topic we will describe how to perform the full cluster restore.
 
-To reduce the effort required we will use ansible where possible to execute commands on all master nodes simultaneously.  It is assumed that the ansible commands are run from the boot node (normally master1) which holds the cluster configuration files from the initial installation. The configuration files are typically held in `/opt/ibm/cluster`. Adjust commands accordingly if your installation uses a different directory.
+To reduce the effort required we will use ansible where possible to execute commands on all master nodes simultaneously.  It is assumed that the ansible commands are run from the boot node (normally master1) which holds the cluster configuration files from the initial installation. The configuration files are typically held in `/opt/ibm-cloud-private-x.x.x/cluster` (replace x.x.x with your ICP version e.g 3.1.1). Adjust commands accordingly if your installation uses a different directory.
 
-Define the following environment variable, according to your installation:  `export CLUSTER_DIR=/opt/ibm/cluster`
+Define the following environment variable, according to your installation:  `export CLUSTER_DIR=/opt/ibm-cloud-private-x.x.x/cluster`
 
 ## Prerequisites Ansible and jq
 
