@@ -10,9 +10,9 @@ Define the following environment variable, according to your installation:  `exp
 
 Ensure that Ansible is installed on the boot node:  `which ansible`  If this command returns an empty response, install ansible on this node.
 
-All Master Nodes also require the `jq` json parsing tool. For instance on Ubuntu, you can ensure this tool is installed with the following command:
+All Master Nodes also require the `jq` json parsing tool. you can ensure this tool is installed with the following command:
 ```
-ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m package -a "use=apt name=jq state=present"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m package -a "use=auto name=jq state=present"
 ```
 
 ## Stop Kubernetes on ALL Master Nodes
