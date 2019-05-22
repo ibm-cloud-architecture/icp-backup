@@ -58,7 +58,7 @@ Following the purge, restore the snapshot on all Master Nodes.  Assuming you hav
 ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m script -a "./multimaster-etcd-restore.sh"
 ```
 
-The command above loads the data to directory /var/lib/etcd/restored on each of your Master Nodes, with the cluster settings configured.  Assuming this command was successful, we need now to move to expected directory, by running the following commands:
+The commands above loads the data to directory /var/lib/etcd/restored on each of your Master Nodes, with the cluster settings configured.  Assuming this command was successful, we need now to move to expected directory, by running the following commands:
 
 ```
 ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "mv /var/lib/etcd/restored/* /var/lib/etcd/"
