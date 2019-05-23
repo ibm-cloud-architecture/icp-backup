@@ -2,17 +2,17 @@
 
 In a multi master ICP environment you'll need to first restore a consistent cluster.  This can either be done via restoring a single node, and then growing the cluster out to the desired size, or by restoring the entire cluster from the same backup copy all at once. In this topic we will describe how to perform the full cluster restore.
 
-To reduce the effort required we will use ansible where possible to execute commands on all master nodes simultaneously.  It is assumed that the ansible commands are run from the boot node (normally master1) which holds the cluster configuration files from the initial installation. The configuration files are typically held in `/opt/ibm/cluster`. Adjust commands accordingly if your installation uses a different directory.
+To reduce the effort required we will use ansible where possible to execute commands on all master nodes simultaneously.  It is assumed that the ansible commands are run from the boot node (normally master1) which holds the cluster configuration files from the initial installation. The configuration files are typically held in `/opt/ibm-cloud-private-x.x.x/cluster` (replace x.x.x with your ICP version e.g 3.1.1). Adjust commands accordingly if your installation uses a different directory.
 
-Define the following environment variable, according to your installation:  `export CLUSTER_DIR=/opt/ibm/cluster`
+Define the following environment variable, according to your installation:  `export CLUSTER_DIR=/opt/ibm-cloud-private-x.x.x/cluster`
 
 ## Prerequisites Ansible and jq
 
 Ensure that Ansible is installed on the boot node:  `which ansible`  If this command returns an empty response, install ansible on this node.
 
-All Master Nodes also require the `jq` json parsing tool. For instance on Ubuntu, you can ensure this tool is installed with the following command:
+All Master Nodes also require the `jq` json parsing tool. you can ensure this tool is installed with the following command:
 ```
-ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m package -a "use=apt name=jq state=present"
+ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m package -a "use=auto name=jq state=present"
 ```
 
 ## Stop Kubernetes on ALL Master Nodes
@@ -58,7 +58,7 @@ Following the purge, restore the snapshot on all Master Nodes.  Assuming you hav
 ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m script -a "./multimaster-etcd-restore.sh"
 ```
 
-The command above loads the data to directory /var/lib/etcd/restored on each of your Master Nodes, with the cluster settings configured.  Assuming this command was successful, we need now to move to expected directory, by running the following commands:
+The commands above loads the data to directory /var/lib/etcd/restored on each of your Master Nodes, with the cluster settings configured.  Assuming this command was successful, we need now to move to expected directory, by running the following commands:
 
 ```
 ansible master -i $CLUSTER_DIR/hosts -e @$CLUSTER_DIR/config.yaml --private-key=$CLUSTER_DIR/ssh_key -m shell -a "mv /var/lib/etcd/restored/* /var/lib/etcd/"
